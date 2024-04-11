@@ -8,7 +8,7 @@ f1 = @(x) (6*x-2).^2.*sin(12*x-4);
 xx = linspace(0,1,100)';
 yy = f1(xx);
 
-x1 = [0; 1*lhsdesign(4,1);1];
+x1 = [0; 1*lhsdesign(5,1);1];
 y1 = f1(x1);
 y1 = y1 + normrnd(0,0*y1 + 0.1);
 
@@ -30,7 +30,7 @@ pcolor(K)
 
 %%
 
-Z = GP([],c);
+Z = GP([],b);
 
 %%
 

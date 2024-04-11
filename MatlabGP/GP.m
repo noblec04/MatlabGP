@@ -20,7 +20,7 @@ classdef GP
 
         function obj = GP(mean,kernel)
             if isempty(mean)
-                mean = CODES.fit.Func(@(x) 0*x(:,1),[],[]);
+                mean = @(x) 0*x(:,1);
             end
             obj.mean = mean;
             obj.kernel = kernel;
@@ -33,7 +33,7 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            y = obj.mean.eval(x) + ksf*obj.alpha;
+            y = obj.mean(x) + ksf*obj.alpha;
 
             if nargout>1
                 kss = obj.kernel.build(xs,xs);
@@ -78,7 +78,7 @@ classdef GP
             obj.K = obj.kernel.build(xx,xx)+diag(0*xx+obj.kernel.signn);
             obj.Kinv = pinv(obj.K,1*10^(-7));
 
-            obj.alpha = obj.Kinv*(obj.Y - obj.mean.eval(obj.X));
+            obj.alpha = obj.Kinv*(obj.Y - obj.mean(obj.X));
 
         end
 
@@ -93,7 +93,7 @@ classdef GP
 
             obj = obj.condition(obj.X,obj.Y);
 
-            res = obj.Y - obj.mean.eval(obj.X);
+            res = obj.Y - obj.mean(obj.X);
 
             detk = det(obj.K);
 
@@ -101,7 +101,7 @@ classdef GP
                 detk = eps;
             end
 
-            nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 1*sum(log(gampdf(theta,3,0.1)));
+            nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 5*sum(log(gampdf(theta,3,0.5)));
 
         end
 
@@ -121,10 +121,14 @@ classdef GP
             tub = 0*tx0 + 8;
 
             func = @(x) -1*obj.LL(x,regress);
+            options = optimoptions('fmincon','Display','none');
 
-            for i = 1:3
+
+            for i = 1:5
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-                [theta{i},val(i)] = CODES.optim.min(func,tx0,tlb,tub,tlb,tub,[],[],'solver','bads');
+
+                [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],options);
+
             end
 
             [~,i] = min(val);
