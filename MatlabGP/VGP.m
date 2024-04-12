@@ -1,13 +1,20 @@
-classdef GP
+classdef VGP
     
     properties
         kernel
         mean
 
-        K
+        M
+        Minv
+
+        Kuf
+
+        Kuu
         Kinv
         alpha
         signn
+
+        ind
 
         X
         Y
@@ -18,12 +25,13 @@ classdef GP
 
     methods
 
-        function obj = GP(mean,kernel)
+        function obj = VGP(mean,kernel,ind)
             if isempty(mean)
                 mean = @(x) 0*x(:,1);
             end
             obj.mean = mean;
             obj.kernel = kernel;
+            obj.ind = ind;
         end
 
         function [y,sig] = eval(obj,x)
@@ -41,25 +49,6 @@ classdef GP
             end
 
         end
-        
-        function [y,dy] = eval_mu(obj,x)
-            
-            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-
-            ksf = obj.kernel.build(xs,xx);
-
-            y = obj.mean(x) + ksf*obj.alpha;
-
-            if nargout>1
-                ksf = obj.kernel.grad(xs,xx);
-                [~,dm] = obj.mean(x);
-
-                dy = dm + ksf*obj.alpha;
-            end
-
-        end
-
 
         function y = samplePrior(obj,x)
             
@@ -84,7 +73,7 @@ classdef GP
             
         end
 
-        function [obj,dK] = condition(obj,X,Y)
+        function obj = condition(obj,X,Y)
 
             obj.X = X;
             obj.Y = Y;
@@ -94,21 +83,14 @@ classdef GP
 
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            if nargout==2
-                [obj.K,dK] = obj.kernel.build(xx,xx);
-            else
-                [obj.K] = obj.kernel.build(xx,xx);
-            end
-
-            obj.K = obj.K + diag(0*xx+obj.kernel.signn);
-
+            obj.K = obj.kernel.build(xx,xx)+diag(0*xx+obj.kernel.signn);
             obj.Kinv = pinv(obj.K,1*10^(-7));
 
             obj.alpha = obj.Kinv*(obj.Y - obj.mean(obj.X));
 
         end
 
-        function [nll,dnLL] = LL(obj,theta,regress)
+        function nll = LL(obj,theta,regress)
 
             if regress
                 obj.kernel.signn = theta(end);
@@ -116,12 +98,8 @@ classdef GP
             end
             
             obj.kernel = obj.kernel.setHPs(theta);
-            
-            if nargout == 2
-                [obj,dK] = obj.condition(obj.X,obj.Y);
-            else
-                [obj] = obj.condition(obj.X,obj.Y);
-            end
+
+            obj = obj.condition(obj.X,obj.Y);
 
             res = obj.Y - obj.mean(obj.X);
 
@@ -133,22 +111,9 @@ classdef GP
 
             nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 5*sum(log(gampdf(theta,3,0.5)));
 
-            nll = -1*nll;
-
-            if nargout==2
-                dnLL = zeros(1,length(theta));
-                for i = 1:length(theta)
-                    dnLL(i) = -0.5*sum(sum((obj.alpha*obj.alpha' - obj.Kinv)*squeeze(dK(:,:,i)))) + (3 - 0.3*theta(i) - 1)/(length(theta)*theta(i)) + 1.4;
-                end
-
-                if regress
-                    dnLL(end+1) = -1*sum(sum(2*sqrt(obj.kernel.signn)*(obj.alpha*obj.alpha' - obj.Kinv)));
-                end
-            end
-
         end
 
-        function [obj,mval] = train(obj,regress)
+        function obj = train(obj,regress)
 
             if nargin<2
                 regress=0;
@@ -164,15 +129,17 @@ classdef GP
             tub = 0*tx0 + 8;
 
             func = @(x) obj.LL(x,regress);
+            options = optimoptions('fmincon','Display','none');
+
 
             for i = 1:5
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-                                
-                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
+                
+                [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],options);
 
             end
 
-            [mval,i] = min(val);
+            [~,i] = min(val);
 
             theta = theta{i};
 

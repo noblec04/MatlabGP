@@ -29,16 +29,19 @@ classdef Matern52<Kernel
             K = K.*exp(-sqrt(5)*d);
 
             if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT);
+                dK = zeros(size(K,1),size(K,2),nT+1);
 
                 for i = 1:nT
                     dK(:,:,i) = (5/theta(i))*(sqrt(5)*d - 1).*((x1(:,i) - x2(:,i)').^2).*exp(-sqrt(5)*d);
                 end
-                dK(dK(:,:,1:nT) < 1e-12) = 0;
+
+                dK(:,:,nT+1) = K;
+
+                dK(dK(:,:,1:nT+1) < 1e-12) = 0;
             end
         end
 
-        function dK = grad(obj,x1,x2,theta)
+        function dK = grad(obj,x1,x2)
 
         end
 
