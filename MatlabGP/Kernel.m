@@ -106,6 +106,12 @@ classdef Kernel
                 end
             end
 
+            K = obj.scale*K;
+
+            if nargout>1
+                dK = obj.scale*dK;
+            end
+
         end
 
         function dK = grad(obj,x1,x2,theta)
@@ -114,20 +120,20 @@ classdef Kernel
 
         function V = getHPs(obj)
             V = cell2mat(obj.thetas);
-            V = [V cell2mat(obj.scales)];
+            %V = [V cell2mat(obj.scales)];
         end
 
         function obj = setHPs(obj,V)
             nT = numel(obj.thetas);
-            nS = numel(obj.scales);
+            %nS = numel(obj.scales);
 
             for i = 1:nT
                 nTs(i) = numel(obj.thetas{i});
-                nSs(i) = numel(obj.scales{i});
+                %nSs(i) = numel(obj.scales{i});
             end
 
             obj.thetas = mat2cell(V(1:sum(nTs)),1,nTs);
-            obj.scales = mat2cell(V(sum(nTs)+1:end),1,nSs);
+            %obj.scales = mat2cell(V(sum(nTs)+1:end),1,nSs);
         end
 
         function obj = plus(obj,K2)

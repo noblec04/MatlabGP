@@ -10,13 +10,13 @@ classdef VGP
         Kuf
 
         Kuu
-        Kinv
+        Kuuinv
+
         alpha
         signn
 
-        ind
-
         X
+        Xu
         Y
 
         lb_x
@@ -31,21 +31,23 @@ classdef VGP
             end
             obj.mean = mean;
             obj.kernel = kernel;
-            obj.ind = ind;
+            obj.Xu = ind;
         end
 
         function [y,sig] = eval(obj,x)
             
-            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            ksf = obj.kernel.build(xs,xx);
+            ksu = obj.kernel.build(xs,xu);
 
-            y = obj.mean(x) + ksf*obj.alpha;
+            y = obj.mean(x) + ksu*obj.alpha;
 
             if nargout>1
-                kss = obj.kernel.build(xs,xs);
-                sig = abs(diag(kss) - dot(ksf',obj.Kinv*ksf')');
+
+                sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
+            
+                sig = obj.kernel.scale^2 + obj.kernel.signn^2 + sigs;
             end
 
         end
@@ -60,16 +62,17 @@ classdef VGP
 
         function y = samplePosterior(obj,x)
             
-            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            ksf = obj.kernel.build(xs,xx);
-
+            ksu = obj.kernel.build(xs,xu);
             kss = obj.kernel.build(xs,xs);
 
-            sig = kss - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
+            sigs = -ksu*obj.Kuuinv*ksu' + ksu*obj.Minv*ksu';
+            
+            sig = kss + obj.kernel.signn^2 + sigs;
 
-            y = mvnrnd(ksf*obj.alpha,sig);
+            y = mvnrnd(ksu*obj.alpha,sig);
             
         end
 
@@ -81,12 +84,20 @@ classdef VGP
             obj.lb_x = min(X);
             obj.ub_x = max(X);
 
-            xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            obj.K = obj.kernel.build(xx,xx)+diag(0*xx+obj.kernel.signn);
-            obj.Kinv = pinv(obj.K,1*10^(-7));
+            obj.kernel.scale = std(Y)/sqrt(2);
 
-            obj.alpha = obj.Kinv*(obj.Y - obj.mean(obj.X));
+            obj.Kuu = obj.kernel.build(xu,xu);
+            obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
+
+            obj.Kuf = obj.kernel.build(xu,xf);
+
+            obj.M = obj.Kuu + obj.Kuf*obj.Kuf'/obj.kernel.signn;
+            obj.Minv = pinv(obj.M,1*10^(-7));
+
+            obj.alpha = obj.Minv*obj.Kuf*Y/obj.kernel.signn;
 
         end
 
@@ -101,19 +112,16 @@ classdef VGP
 
             obj = obj.condition(obj.X,obj.Y);
 
-            res = obj.Y - obj.mean(obj.X);
+            its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
 
-            detk = det(obj.K);
+            [mu,sig] = obj.eval(obj.X(its,:));
+            
+            nll = sum(-log(2*pi*sqrt(abs(sig'))) - ((obj.Y(its) - mu).^2)./sig') + 0.05*sum(log(gampdf(theta,2,0.5)));
 
-            if isnan(detk)
-                detk = eps;
-            end
-
-            nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 5*sum(log(gampdf(theta,3,0.5)));
-
+            nll = -1*nll;
         end
 
-        function obj = train(obj,regress)
+        function [obj,nll] = train(obj,regress)
 
             if nargin<2
                 regress=0;
@@ -129,17 +137,19 @@ classdef VGP
             tub = 0*tx0 + 8;
 
             func = @(x) obj.LL(x,regress);
-            options = optimoptions('fmincon','Display','none');
+            opts = bads('Defaults');
+            opts.Display = 'final';
+            opts.TolFun = 10^(-2);
+            opts.TolMesh = 10^(-2);
 
-
-            for i = 1:5
+            for i = 1:3
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
                 
-                [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],options);
+                [theta{i},val(i)] = bads(func,tx0,tlb,tub);
 
             end
 
-            [~,i] = min(val);
+            [nll,i] = min(val);
 
             theta = theta{i};
 

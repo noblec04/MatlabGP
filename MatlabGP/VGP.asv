@@ -1,15 +1,24 @@
-classdef GP
+classdef VGP
     
     properties
         kernel
         mean
 
-        K
-        Kinv
+        M
+        Minv
+
+        Kuf
+
+        Kuu
+        Kuuinv
+
+        kuf
+
         alpha
         signn
 
         X
+        Xu
         Y
 
         lb_x
@@ -18,26 +27,29 @@ classdef GP
 
     methods
 
-        function obj = GP(mean,kernel)
+        function obj = VGP(mean,kernel,ind)
             if isempty(mean)
                 mean = @(x) 0*x(:,1);
             end
             obj.mean = mean;
             obj.kernel = kernel;
+            obj.Xu = ind;
         end
 
         function [y,sig] = eval(obj,x)
             
-            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            ksf = obj.kernel.build(xs,xx);
+            ksu = obj.kernel.build(xs,xu);
 
-            y = obj.mean(x) + ksf*obj.alpha;
+            y = obj.mean(x) + ksu*obj.alpha;
 
             if nargout>1
-                kss = obj.kernel.build(xs,xs);
-                sig = abs(diag(kss) - dot(ksf',obj.Kinv*ksf')');
+
+                sigs = -dot(ksu',(kr.Kuuinv)*ksu') + dot(ksu',kr.Minv*ksu');
+            
+                sig = kr.kernel.scale^2 + kr.kernel.signn^2 + sigs;
             end
 
         end
@@ -52,20 +64,21 @@ classdef GP
 
         function y = samplePosterior(obj,x)
             
-            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            ksf = obj.kernel.build(xs,xx);
-
+            ksu = obj.kernel.build(xs,xu);
             kss = obj.kernel.build(xs,xs);
 
-            sig = kss - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
+            sigs = -ksu*kr.Kuuinv*ksu' + ksu*kr.Minv*ksu';
+            
+            sig = kss + kr.kernel.signn^2 + sigs;
 
-            y = mvnrnd(ksf*obj.alpha,sig);
+            y = mvnrnd(ksu*obj.alpha,sig);
             
         end
 
-        function [obj,dK] = condition(obj,X,Y)
+        function obj = condition(obj,X,Y)
 
             obj.X = X;
             obj.Y = Y;
@@ -73,23 +86,24 @@ classdef GP
             obj.lb_x = min(X);
             obj.ub_x = max(X);
 
-            xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            if nargout==2
-                [obj.K,dK] = obj.kernel.build(xx,xx);
-            else
-                [obj.K] = obj.kernel.build(xx,xx);
-            end
+            obj.kernel.scale = std(Y);
 
-            obj.K = obj.K + diag(0*xx+obj.kernel.signn);
+            obj.Kuu = obj.kernel.build(xu,xu);
+            obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
 
-            obj.Kinv = pinv(obj.K,1*10^(-7));
+            obj.Kuf = obj.kernel.build(xu,xf);
 
-            obj.alpha = obj.Kinv*(obj.Y - obj.mean(obj.X));
+            obj.M = obj.Kuu + obj.Kuf*obj.Kuf'/obj.kernel.signn;
+            obj.Minv = pinv(obj.M,1*10^(-7));
+
+            obj.alpha = obj.Minv*obj.Kuf*Y/obj.kernel.signn;
 
         end
 
-        function [nll,dnLL] = LL(obj,theta,regress)
+        function nll = LL(obj,theta,regress)
 
             if regress
                 obj.kernel.signn = theta(end);
@@ -97,25 +111,14 @@ classdef GP
             end
             
             obj.kernel = obj.kernel.setHPs(theta);
+
+            obj = obj.condition(obj.X,obj.Y);
+
+            its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/20)));
+
+            [mu,sig] = obj.eval(obj.X(its,:));
             
-            if nargout == 2
-                [obj,dK] = obj.condition(obj.X,obj.Y);
-            else
-                [obj] = obj.condition(obj.X,obj.Y);
-            end
-
-            res = obj.Y - obj.mean(obj.X);
-
-            detk = det(obj.K);
-
-            if isnan(detk)
-                detk = eps;
-            end
-
-            nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 5*sum(log(gampdf(theta,3,0.5)));
-
-
-            if nargout == 2
+            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((kr.Y(its) - mu).^2)./sig) + 0.05*sum(log(gampdf(theta,3,0.5)));
 
         end
 
@@ -134,13 +137,13 @@ classdef GP
             tlb = 0*tx0 + 0.01;
             tub = 0*tx0 + 8;
 
-            func = @(x) -1*obj.LL(x,regress);
+            func = @(x) obj.LL(x,regress);
             options = optimoptions('fmincon','Display','none');
 
 
             for i = 1:5
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-
+                
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],options);
 
             end

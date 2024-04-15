@@ -94,6 +94,20 @@ classdef GP
 
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
+            [obj.K] = obj.kernel.build(xx,xx);
+
+            res = obj.Y - obj.mean(obj.X);
+
+            kkp = pinv(obj.K,1*10^(-7));
+
+            sigp = sqrt(dot((res'),kkp*(res))./(size(obj.Y,1)));
+            
+            if isinf(sigp)
+                sigp = std(obj.Y);
+            end
+
+            obj.kernel.scale = sigp^2;
+
             if nargout==2
                 [obj.K,dK] = obj.kernel.build(xx,xx);
             else
@@ -104,7 +118,7 @@ classdef GP
 
             obj.Kinv = pinv(obj.K,1*10^(-7));
 
-            obj.alpha = obj.Kinv*(obj.Y - obj.mean(obj.X));
+            obj.alpha = obj.Kinv*(res);
 
         end
 
@@ -123,22 +137,20 @@ classdef GP
                 [obj] = obj.condition(obj.X,obj.Y);
             end
 
-            res = obj.Y - obj.mean(obj.X);
-
             detk = det(obj.K);
 
             if isnan(detk)
                 detk = eps;
             end
 
-            nll = -0.5*(eps + abs((res)'*obj.Kinv*(res))) - 0.5*log(abs(detk)+eps) + 5*sum(log(gampdf(theta,3,0.5)));
+            nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps);% + 1*sum(log(gampdf(theta,3,2)));
 
             nll = -1*nll;
 
             if nargout==2
                 dnLL = zeros(1,length(theta));
                 for i = 1:length(theta)
-                    dnLL(i) = -0.5*sum(sum((obj.alpha*obj.alpha' - obj.Kinv)*squeeze(dK(:,:,i)))) + (3 - 0.3*theta(i) - 1)/(length(theta)*theta(i)) + 1.4;
+                    dnLL(i) = -0.5*sum(sum((obj.alpha*obj.alpha' - obj.Kinv)*squeeze(dK(:,:,i)))) + (3 - 1*theta(i) - 1)/(length(theta)*theta(i)) + 1.4;
                 end
 
                 if regress
@@ -156,19 +168,21 @@ classdef GP
            
             tx0 = obj.kernel.getHPs();
 
-            if regress
-                tx0(end+1) = 0;
-            end
-
             tlb = 0*tx0 + 0.01;
-            tub = 0*tx0 + 8;
+            tub = 0*tx0 + 3;
+
+            if regress
+                tlb(end+1) = 0;
+                tub(end+1) = 5;
+            end
 
             func = @(x) obj.LL(x,regress);
 
             for i = 1:5
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
                                 
-                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
+                [theta{i},val(i)] = bads(func,tx0,tlb,tub);
+                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
 
             end
 
