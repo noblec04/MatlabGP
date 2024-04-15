@@ -45,9 +45,11 @@ classdef VGP
 
             if nargout>1
 
+                kss = obj.kernel.build(xs,xs);
+
                 sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
             
-                sig = obj.kernel.scale^2 + obj.kernel.signn^2 + sigs;
+                sig = diag(kss) + obj.kernel.signn + sigs';
             end
 
         end
@@ -70,7 +72,7 @@ classdef VGP
 
             sigs = -ksu*obj.Kuuinv*ksu' + ksu*obj.Minv*ksu';
             
-            sig = kss + obj.kernel.signn^2 + sigs;
+            sig = kss + obj.kernel.signn + sigs;
 
             y = mvnrnd(ksu*obj.alpha,sig);
             
@@ -87,15 +89,15 @@ classdef VGP
             xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            obj.kernel.scale = std(Y)/sqrt(2);
+            obj.kernel.scale = std(Y)/2;
 
             obj.Kuu = obj.kernel.build(xu,xu);
-            obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
+            obj.Kuuinv = inv(obj.Kuu);
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
             obj.M = obj.Kuu + obj.Kuf*obj.Kuf'/obj.kernel.signn;
-            obj.Minv = pinv(obj.M,1*10^(-7));
+            obj.Minv = inv(obj.M);
 
             obj.alpha = obj.Minv*obj.Kuf*Y/obj.kernel.signn;
 
@@ -116,7 +118,7 @@ classdef VGP
 
             [mu,sig] = obj.eval(obj.X(its,:));
             
-            nll = sum(-log(2*pi*sqrt(abs(sig'))) - ((obj.Y(its) - mu).^2)./sig') + 0.05*sum(log(gampdf(theta,2,0.5)));
+            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y(its) - mu).^2)./sig) + 0.05*sum(log(gampdf(theta,2,0.5)));
 
             nll = -1*nll;
         end
