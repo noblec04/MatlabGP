@@ -147,7 +147,7 @@ classdef VGP
             for i = 1:3
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
                 
-                [theta{i},val(i)] = bads(func,tx0,tlb,tub);
+                [theta{i},val(i)] = bads(func,tx0,tlb,tub,tlb,tub,[],opts);
 
             end
 
