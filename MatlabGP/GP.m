@@ -178,17 +178,27 @@ classdef GP
 
             func = @(x) obj.LL(x,regress);
 
-            for i = 1:5
-                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-                                
-                [theta{i},val(i)] = bads(func,tx0,tlb,tub);
-                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
+            xxt = tlb + (tub - tlb).*lhsdesign(100*length(tlb),length(tlb));
 
+            for ii = 1:size(xxt,1)
+                LL(ii) = -1*func(xxt(ii,:));
             end
 
-            [mval,i] = min(val);
+            LL = exp(1 + LL - max(LL));
 
-            theta = theta{i};
+            theta = sum(xxt.*LL')/sum(LL);
+
+            % for i = 1:5
+            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+            % 
+            %     [theta{i},val(i)] = bads(func,tx0,tlb,tub);
+            %     %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
+            % 
+            % end
+            % 
+            % [mval,i] = min(val);
+
+            %theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);
@@ -198,6 +208,13 @@ classdef GP
             obj.kernel = obj.kernel.setHPs(theta);
             obj = obj.condition(obj.X,obj.Y);
 
+        end
+
+        function obj = or(obj,A)
+            x = A(:,1:end-1);
+            y = A(:,end);
+
+            obj = obj.condition(x,y);
         end
         
     end
