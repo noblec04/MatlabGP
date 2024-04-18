@@ -11,11 +11,11 @@ clc
 
 xx = lhsdesign(100,3);
 
-a = EQ(3,[1 3 2]);
+a = kernels.EQ(3,[1 3 2]);
 
-b = Matern52(2,2);
+b = kernels.Matern52(2,2);
 
-c = RQ(0.1,0.1);
+c = kernels.RQ(0.1,0.1);
 
 d = (c+a)*b;
 

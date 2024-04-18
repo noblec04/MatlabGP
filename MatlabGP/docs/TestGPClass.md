@@ -28,14 +28,17 @@ yy = f1(xx);
 
 x1 = [0; 1*lhsdesign(8,1);1];
 y1 = f1(x1);
-
-a = (Matern52(1,0.2) + EQ(0.2,0.4))*RQ(1,0.1);
-
-a.signn = 0.2;
 ```
 
 ```matlab:Code
-Z = GP([],a);
+a = means.const(2) + means.linear(4);
+
+b = (kernels.Matern52(1,0.2) + kernels.EQ(0.2,0.4))*kernels.RQ(1,0.1);
+b.signn = 0.2;
+```
+
+```matlab:Code
+Z = GP(a,b);
 ```
 
 ```matlab:Code
@@ -81,7 +84,7 @@ toc
 ```
 
 ```text:Output
-Elapsed time is 0.593151 seconds.
+Elapsed time is 1.141292 seconds.
 ```
 
 ```matlab:Code

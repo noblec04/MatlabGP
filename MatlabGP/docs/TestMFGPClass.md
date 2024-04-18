@@ -19,24 +19,26 @@ x{1} = [0; lhsdesign(2,1);1];
 y{1} = ff{1}(x{1});
 
 for i = 2:3
-x{i} = [x{i-1}; lhsdesign(8,1)];
+x{i} = [x{i-1}; lhsdesign(5,1)];
 y{i} = ff{i}(x{i});
 end
 
-a = Matern52(1,0.2)+RQ(0.1,0.5);
-b = EQ(1,0.3);
+ma = means.linear(4) + means.const(1);
+
+a = kernels.Matern52(1,0.2)+kernels.RQ(0.1,0.5);
+b = kernels.EQ(1,0.3);
 ```
 
 ```matlab:Code
 for i = 1:3
-    Z{i} = GP([],a);
+    Z{i} = GP(ma,a);
     Z{i} = Z{i}|[x{i} y{i}];
     Z{i} = Z{i}.train;
 end
 ```
 
 ```matlab:Code
-MF = MFGP(Z,[],b);
+MF = MFGP(Z,ma,b);
 ```
 
 ```matlab:Code
@@ -68,3 +70,38 @@ plot(x{1},y{1},'x')
 ```
 
 ![figure_1.png](TestMFGPClass_images/figure_1.png)
+
+```matlab:Code
+
+```
+
+```matlab:Code
+ym2 = MF.Zd{2}.mean.eval(xx);
+ym3 = MF.Zd{3}.mean.eval(xx);
+
+figure
+plot(xx,ym2)
+hold on
+plot(xx,ym3)
+```
+
+![figure_2.png](TestMFGPClass_images/figure_2.png)
+
+```matlab:Code
+
+ym1 = MF.GPs{1}.mean.eval(xx);
+ym2 = MF.GPs{2}.mean.eval(xx);
+ym3 = MF.GPs{3}.mean.eval(xx);
+
+figure
+plot(xx,ym1)
+hold on
+plot(xx,ym2)
+plot(xx,ym3)
+```
+
+![figure_3.png](TestMFGPClass_images/figure_3.png)
+
+```matlab:Code
+
+```
