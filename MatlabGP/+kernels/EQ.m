@@ -1,4 +1,4 @@
-classdef EQ<Kernel
+classdef EQ<kernels.Kernel
     
     properties
         theta

@@ -1,4 +1,4 @@
-classdef Matern52<Kernel
+classdef RQ<kernels.Kernel
     
     properties
         theta
@@ -6,7 +6,7 @@ classdef Matern52<Kernel
 
     methods
 
-        function obj = Matern52(scale,theta)
+        function obj = RQ(scale,theta)
             obj.scale = scale;
             obj.scales{1} = scale;
             obj.theta = theta;
@@ -24,24 +24,16 @@ classdef Matern52<Kernel
 
             d = obj.dist(x1./theta,x2./theta);
 
-            K = (1 + sqrt(5)*d + (5/3)*d.^2);
-
-            K = K.*exp(-sqrt(5)*d);
+            alpha = 1;
+        
+            K = (1 + (d.^2)/2).^(-1*alpha);
 
             if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT+1);
-
-                for i = 1:nT
-                    dK(:,:,i) = (5/theta(i))*(sqrt(5)*d - 1).*((x1(:,i) - x2(:,i)').^2).*exp(-sqrt(5)*d);
-                end
-
-                dK(:,:,nT+1) = K;
-
-                dK(dK(:,:,1:nT+1) < 1e-12) = 0;
+                dK = 0*K;
             end
         end
 
-        function dK = grad(obj,x1,x2)
+        function dK = grad(obj,x1,x2,theta)
 
         end
 

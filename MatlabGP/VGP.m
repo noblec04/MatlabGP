@@ -27,7 +27,7 @@ classdef VGP
 
         function obj = VGP(mean,kernel,ind)
             if isempty(mean)
-                mean = @(x) 0*x(:,1);
+                mean = means.zero;
             end
             obj.mean = mean;
             obj.kernel = kernel;
@@ -41,7 +41,7 @@ classdef VGP
 
             ksu = obj.kernel.build(xs,xu);
 
-            y = obj.mean(x) + ksu*obj.alpha;
+            y = obj.mean.eval(x) + ksu*obj.alpha;
 
             if nargout>1
 
@@ -74,7 +74,7 @@ classdef VGP
             
             sig = kss + obj.kernel.signn + sigs;
 
-            y = mvnrnd(ksu*obj.alpha,sig);
+            y = mvnrnd(obj.mean.eval(x)+ksu*obj.alpha,sig);
             
         end
 
@@ -99,18 +99,19 @@ classdef VGP
             obj.M = obj.Kuu + obj.Kuf*obj.Kuf'/obj.kernel.signn;
             obj.Minv = inv(obj.M);
 
-            obj.alpha = obj.Minv*obj.Kuf*Y/obj.kernel.signn;
+            obj.alpha = obj.Minv*obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn;
 
         end
 
-        function nll = LL(obj,theta,regress)
+        function nll = LL(obj,theta,regress,ntm)
 
             if regress
                 obj.kernel.signn = theta(end);
                 theta(end) = [];
             end
             
-            obj.kernel = obj.kernel.setHPs(theta);
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
 
             obj = obj.condition(obj.X,obj.Y);
 
@@ -118,27 +119,40 @@ classdef VGP
 
             [mu,sig] = obj.eval(obj.X(its,:));
             
-            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y(its) - mu).^2)./sig) + 0.05*sum(log(gampdf(theta,2,0.5)));
+            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y(its) - mu).^2)./sig) + 0.05*sum(log(gampdf(abs(theta)+eps,2,0.5)));
 
             nll = -1*nll;
+
+            nll(isnan(nll)) = 0;
+            nll(isinf(nll)) = 0;
         end
 
         function [obj,nll] = train(obj,regress)
 
             if nargin<2
-                regress=0;
+                regress=1;
             end
            
-            tx0 = obj.kernel.getHPs();
+            tm0 = obj.mean.getHPs();
+            ntm = numel(tm0);
+
+            tmlb = 0*tm0 - 10;
+            tmub = 0*tm0 + 10;
+
+            tk0 = obj.kernel.getHPs();
+
+            tklb = 0*tk0 + 0.01;
+            tkub = 0*tk0 + 3;
+
+            tlb = [tmlb tklb];
+            tub = [tmub tkub];
 
             if regress
-                tx0(end+1) = 0;
+                tlb(end+1) = 0;
+                tub(end+1) = 5;
             end
 
-            tlb = 0*tx0 + 0.01;
-            tub = 0*tx0 + 8;
-
-            func = @(x) obj.LL(x,regress);
+            func = @(x) obj.LL(x,regress,ntm);
             opts = bads('Defaults');
             opts.Display = 'final';
             opts.TolFun = 10^(-2);
@@ -160,7 +174,8 @@ classdef VGP
                 theta(end) = [];
             end
 
-            obj.kernel = obj.kernel.setHPs(theta);
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
             obj = obj.condition(obj.X,obj.Y);
 
         end

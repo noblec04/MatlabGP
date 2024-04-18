@@ -20,7 +20,7 @@ classdef GP
 
         function obj = GP(mean,kernel)
             if isempty(mean)
-                mean = @(x) 0*x(:,1);
+                mean = means.zero;
             end
             obj.mean = mean;
             obj.kernel = kernel;
@@ -33,7 +33,7 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            y = obj.mean(x) + ksf*obj.alpha;
+            y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
                 kss = obj.kernel.build(xs,xs);
@@ -49,11 +49,11 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            y = obj.mean(x) + ksf*obj.alpha;
+            y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
                 ksf = obj.kernel.grad(xs,xx);
-                [~,dm] = obj.mean(x);
+                [~,dm] = obj.mean.eval(x);
 
                 dy = dm + ksf*obj.alpha;
             end
@@ -80,7 +80,7 @@ classdef GP
 
             sig = kss - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
 
-            y = mvnrnd(ksf*obj.alpha,sig);
+            y = mvnrnd(obj.mean.eval(x) + ksf*obj.alpha,sig);
             
         end
 
@@ -96,7 +96,7 @@ classdef GP
 
             [obj.K] = obj.kernel.build(xx,xx);
 
-            res = obj.Y - obj.mean(obj.X);
+            res = obj.Y - obj.mean.eval(obj.X);
 
             kkp = pinv(obj.K,1*10^(-7));
 
@@ -122,14 +122,15 @@ classdef GP
 
         end
 
-        function [nll,dnLL] = LL(obj,theta,regress)
+        function [nll,dnLL] = LL(obj,theta,regress,ntm)
 
             if regress
                 obj.kernel.signn = theta(end);
                 theta(end) = [];
             end
             
-            obj.kernel = obj.kernel.setHPs(theta);
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
             
             if nargout == 2
                 [obj,dK] = obj.condition(obj.X,obj.Y);
@@ -160,23 +161,32 @@ classdef GP
 
         end
 
-        function [obj,mval] = train(obj,regress)
+        function [obj,LL] = train(obj,regress)
 
             if nargin<2
                 regress=0;
             end
-           
-            tx0 = obj.kernel.getHPs();
 
-            tlb = 0*tx0 + 0.01;
-            tub = 0*tx0 + 3;
+            tm0 = obj.mean.getHPs();
+            ntm = numel(tm0);
+
+            tmlb = 0*tm0 - 10;
+            tmub = 0*tm0 + 10;
+
+            tk0 = obj.kernel.getHPs();
+
+            tklb = 0*tk0 + 0.01;
+            tkub = 0*tk0 + 3;
+
+            tlb = [tmlb tklb];
+            tub = [tmub tkub];
 
             if regress
                 tlb(end+1) = 0;
                 tub(end+1) = 5;
             end
 
-            func = @(x) obj.LL(x,regress);
+            func = @(x) obj.LL(x,regress,ntm);
 
             xxt = tlb + (tub - tlb).*lhsdesign(100*length(tlb),length(tlb));
 
@@ -205,7 +215,9 @@ classdef GP
                 theta(end) = [];
             end
 
-            obj.kernel = obj.kernel.setHPs(theta);
+
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
             obj = obj.condition(obj.X,obj.Y);
 
         end
