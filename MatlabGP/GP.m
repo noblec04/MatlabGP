@@ -222,6 +222,48 @@ classdef GP
 
         end
 
+        function obj = resolve(obj,x,y)
+           
+            replicates = ismembertol(x,obj.X,1e-4,'ByRows',true);
+
+            x(replicates,:) = [];
+            y(replicates,:) = [];
+
+            if size(x,1)>0
+               
+                %{
+                    Using single point partitioned matrix inverse equation
+                    from Binois et. al. (2019) https://doi.org/10.1080/00401706.2018.1469433
+                    with ~500x500 matrix ~10x speedup
+                %}
+               
+                xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+                xsc = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+               
+                [ks2] = obj.kernel.build(xsc,xx);
+               
+                c2 = obj.kernel.scale - dot(ks2,obj.Kinv*ks2');
+               
+                g = -1*obj.Kinv*ks2'/c2;
+               
+                gg = g*g';
+               
+                k11inv1 = obj.Kinv + (c2)*gg;
+               
+                k11inv2 = [k11inv1 g;
+                            g' 1/(c2)];
+                       
+                obj.Kinv = k11inv2;
+               
+                obj.X = [obj.X; x];
+                obj.Y = [obj.Y; y];
+           
+                obj.alpha = obj.Kinv*(obj.Y - obj.mean.eval(obj.X));
+            end
+
+        end
+
+
         function obj = or(obj,A)
             x = A(:,1:end-1);
             y = A(:,end);

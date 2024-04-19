@@ -4,6 +4,8 @@ classdef VGP
         kernel
         mean
 
+        B
+        
         M
         Minv
 
@@ -13,8 +15,7 @@ classdef VGP
         Kuuinv
 
         alpha
-        signn
-
+        
         X
         Xu
         Y
@@ -78,6 +79,38 @@ classdef VGP
             
         end
 
+        function obj = addInducingPoints(obj,x)
+            
+            replicates = ismembertol(x,obj.Xu,1e-4,'ByRows',true);
+
+            x(replicates,:)=[];
+            
+            if size(x,1)>0
+                obj.Xu = [obj.Xu;x];
+                obj = obj.condition(obj.X,obj.Y);
+            end
+
+        end
+
+        function nll = nLL(obj,x,y)
+
+            [mu,sig] = obj.eval(x);
+            
+            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((y - mu).^2)./sig);
+
+        end
+
+        function dy = newXuDiff(obj,x)
+
+            obj2 = obj.addInducingPoints(x);
+
+            Y1 = obj.eval(obj.X);
+            Y2 = obj2.eval(obj.X);
+
+            dy = -1*abs(sum(Y2-Y1));
+            
+        end
+
         function obj = condition(obj,X,Y)
 
             obj.X = X;
@@ -96,19 +129,23 @@ classdef VGP
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
-            obj.M = obj.Kuu + obj.Kuf*obj.Kuf'/obj.kernel.signn;
+            obj.B = obj.Kuf*obj.Kuf'/obj.kernel.signn;
+            obj.M = obj.Kuu + obj.B;
             obj.Minv = inv(obj.M);
 
             obj.alpha = obj.Minv*obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn;
 
         end
 
-        function nll = LL(obj,theta,regress,ntm)
+        function nll = LL(obj,theta,regress)
 
             if regress
                 obj.kernel.signn = theta(end);
                 theta(end) = [];
             end
+
+            tm0 = obj.mean.getHPs();
+            ntm = numel(tm0);
             
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
@@ -117,10 +154,8 @@ classdef VGP
 
             its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
 
-            [mu,sig] = obj.eval(obj.X(its,:));
+            nll = obj.nLL(obj.X(its,:),obj.Y(its));
             
-            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y(its) - mu).^2)./sig) + 0.05*sum(log(gampdf(abs(theta)+eps,2,0.5)));
-
             nll = -1*nll;
 
             nll(isnan(nll)) = 0;
@@ -129,7 +164,7 @@ classdef VGP
 
         function [obj,nll] = train(obj,regress)
 
-            if nargin<2
+            if obj.kernel.signn==0||nargin<2
                 regress=1;
             end
            
@@ -148,11 +183,11 @@ classdef VGP
             tub = [tmub tkub];
 
             if regress
-                tlb(end+1) = 0;
+                tlb(end+1) = 0.001;
                 tub(end+1) = 5;
             end
 
-            func = @(x) obj.LL(x,regress,ntm);
+            func = @(x) obj.LL(x,regress);
             opts = bads('Defaults');
             opts.Display = 'final';
             opts.TolFun = 10^(-2);
@@ -178,6 +213,31 @@ classdef VGP
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
             obj = obj.condition(obj.X,obj.Y);
 
+        end
+
+        function obj = resolve(obj,x,y)
+            
+            replicates = ismembertol(x,obj.X,1e-4,'ByRows',true);
+
+            x(replicates,:)=[];
+            y(replicates)=[];
+            
+            if size(x,1)>0
+
+                obj.X = [obj.X; x];
+                obj.Y = [obj.Y; y];
+
+                xsc = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+                xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+                [k2s] = obj.kernel.build(xu,xsc);
+                obj.alpha = obj.alpha + k2s*y/obj.kernel.signn;
+
+                obj.B = obj.B + k2s*k2s'/obj.kernel.signn;
+                obj.M = obj.Kuu + obj.B;
+                obj.Minv = pinv(obj.M);
+            end
+            
         end
         
     end
