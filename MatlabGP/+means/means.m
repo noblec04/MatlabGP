@@ -12,11 +12,15 @@ classdef means
 
         end
 
-        function y = eval(obj,x)
+        function [y,dy] = eval(obj,x)
 
             nb = numel(obj.meanz);
 
-            y = obj.meanz{1}.forward(x,obj.coeffs{1});
+            if nargout>1
+                [y,dy] = obj.meanz{1}.forward(x,obj.coeffs{1});
+            else
+                y = obj.meanz{1}.forward(x,obj.coeffs{1});
+            end
 
             for i = 2:nb
                 switch obj.operations{i-1}

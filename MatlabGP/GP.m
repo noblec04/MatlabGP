@@ -52,10 +52,27 @@ classdef GP
             y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
-                ksf = obj.kernel.grad(xs,xx);
+                dksf = obj.kernel.grad(xs,xx);
                 [~,dm] = obj.mean.eval(x);
 
-                dy = dm + ksf*obj.alpha;
+                dy = dm + dksf*obj.alpha;
+            end
+
+        end
+
+        function [sig,dsig] = eval_var(obj,x)
+            
+            xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+            ksf = obj.kernel.build(xs,xx);
+
+            kss = obj.kernel.build(xs,xs);
+            sig = -1*abs(diag(kss) - dot(ksf',obj.Kinv*ksf')');
+
+            if nargout>1
+                dksf = obj.kernel.grad(xs,xx);
+                dsig = -1*(-2*dot(ksf,obj.Kinv*dksf')');
             end
 
         end

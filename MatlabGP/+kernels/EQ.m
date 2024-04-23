@@ -31,12 +31,8 @@ classdef EQ<kernels.Kernel
                 for i = 1:nT
                     dK(:,:,i) = (2/theta(i))*((x1(:,i) - x2(:,i)').^2).*K;
                 end
-                dK(dK(:,:,1:nT) < 1e-12) = 0;
+                dK(abs(dK(:,:,1:nT)) < 1e-12) = 0;
             end
-        end
-
-        function dK = grad(obj,x1,x2,theta)
-
         end
 
         function obj = periodic(obj,dim,P)

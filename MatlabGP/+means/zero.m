@@ -8,7 +8,7 @@ classdef zero<means.means
 
         function [y,dy] = forward(~,x)
             y = 0*x(:,1);
-            dy = 0*x(:,1);
+            dy = 0*x;
         end
 
     end

@@ -33,10 +33,6 @@ classdef RQ<kernels.Kernel
             end
         end
 
-        function dK = grad(obj,x1,x2,theta)
-
-        end
-
         function obj = periodic(obj,dim,P)
             obj.w.period = P;
             obj.w.dim = dim;

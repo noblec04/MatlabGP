@@ -56,7 +56,7 @@ classdef Kernel
             if nargout>1
                 [K,dK] = obj.kernels{1}.forward(xi1,xi2,obj.thetas{1});
                 K = obj.scales{1}*K;
-                dK = obj.scales{1}*dK;
+                dKs{1} = obj.scales{1}*dK;
             else
                 K = obj.scales{1}*obj.kernels{1}.forward(xi1,xi2,obj.thetas{1});
             end
@@ -71,7 +71,7 @@ classdef Kernel
                         if nargout>1
                             [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                             K = K + obj.scales{i}*K1;
-                            dK = dK + obj.scales{i}*dK1;
+                            dKs{i} = obj.scales{i}*dK1;
                         else
                             K = K + obj.scales{i}*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                         end
@@ -80,7 +80,7 @@ classdef Kernel
                         if nargout>1
                             [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                             K = K - obj.scales{i}*K1;
-                            dK = dK - obj.scales{i}*dK1;
+                            dKs{i} = -1*obj.scales{i}*dK1;
                         else
                             K = K - obj.scales{i}*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                         end
@@ -88,19 +88,16 @@ classdef Kernel
                     case '*'
                         if nargout>1
                             [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                            K = K.*obj.scales{i}.*K1;
-                            dK = dK.*obj.scales{i}*dK1;
-                        else
-                            K = K.*obj.scales{i}.*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                        end
 
-                     case '/'
-                        if nargout>1
-                            [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                            K = K./obj.scales{i}.*K1;
-                            dK = dK./obj.scales{i}*dK1;
+                            for kk = 1:size(dK1,3)
+                                dki(:,:,kk) = obj.scales{i}*K.*dK1(:,:,kk);
+                            end
+
+                            dKs{i} = dki;
+
+                            K = K.*obj.scales{i}.*K1;
                         else
-                            K = K./obj.scales{i}.*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
+                            K = obj.scales{i}*K.*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                         end
                         
                 end
@@ -109,31 +106,40 @@ classdef Kernel
             K = obj.scale*K;
 
             if nargout>1
-                dK = obj.scale*dK;
+                jj = 1;
+                for i = 1:numel(dKs)
+                    nn = size(dKs{i},3);
+                    dK(:,:,jj:jj+nn-1) = obj.scale*cell2mat(dKs(i));
+                    jj=jj+nn;
+                end
             end
 
         end
 
-        function dK = grad(obj,x1,x2,theta)
+        function dK = grad(obj,x1,x2)
+
+            a = size(x1,1);
+            b = size(x1,2);
+            c = size(x2,1);
+
+            dK = full(AutoDiffJacobianAutoDiff(@(x) obj.build(x,x2),x1));
+
+            dK = reshape(dK,[a c b]);
 
         end
 
         function V = getHPs(obj)
             V = cell2mat(obj.thetas);
-            %V = [V cell2mat(obj.scales)];
         end
 
         function obj = setHPs(obj,V)
             nT = numel(obj.thetas);
-            %nS = numel(obj.scales);
 
             for i = 1:nT
                 nTs(i) = numel(obj.thetas{i});
-                %nSs(i) = numel(obj.scales{i});
             end
 
             obj.thetas = mat2cell(V(1:sum(nTs)),1,nTs);
-            %obj.scales = mat2cell(V(sum(nTs)+1:end),1,nSs);
         end
 
         function obj = plus(obj,K2)
@@ -145,7 +151,7 @@ classdef Kernel
             obj.warping{end+1} = K2.w;
         end
 
-        function obj = subtract(obj,K2)
+        function obj = minus(obj,K2)
 
             obj.kernels{end+1} = K2;
             obj.operations{end+1} = '-';
@@ -158,15 +164,6 @@ classdef Kernel
 
             obj.kernels{end+1} = K2;
             obj.operations{end+1} = '*';
-            obj.thetas{end+1} = K2.theta;
-            obj.scales{end+1} = K2.scale;
-            obj.warping{end+1} = K2.w;
-        end
-
-        function obj = mrdivide(obj,K2)
-
-            obj.kernels{end+1} = K2;
-            obj.operations{end+1} = '/';
             obj.thetas{end+1} = K2.theta;
             obj.scales{end+1} = K2.scale;
             obj.warping{end+1} = K2.w;

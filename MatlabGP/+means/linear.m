@@ -8,7 +8,7 @@ classdef linear<means.means
 
         function [y,dy] = forward(~,x,theta)
             y = (theta*x')';
-            dy = x;
+            dy = theta;
         end
 
     end

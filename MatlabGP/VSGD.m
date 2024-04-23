@@ -115,7 +115,7 @@ while abs(err)>in.tol
     if ~isempty(in.ub)
         for jj = 1:length(x)
             if x(jj)>in.ub(jj)
-                x(jj)=in.ub(jj) - abs(lr*mug(jj)./sqrt(mug(jj).^2 + sigg2(jj)));
+                x(jj)=in.ub(jj) - 0.1*abs(lr*mug(jj)./sqrt(mug(jj).^2 + sigg2(jj)));
             end
         end
     end
@@ -124,7 +124,7 @@ while abs(err)>in.tol
     if ~isempty(in.lb)
         for jj = 1:length(x)
             if x(jj)<in.lb(jj)
-                x(jj)=in.lb(jj) + abs(lr*mug(jj)./sqrt(mug(jj).^2 + sigg2(jj)));
+                x(jj)=in.lb(jj) + 0.1*abs(lr*mug(jj)./sqrt(mug(jj).^2 + sigg2(jj)));
             end
         end
     end
