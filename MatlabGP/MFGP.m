@@ -29,6 +29,20 @@ classdef MFGP
 
         end
 
+        function obj = resolve(obj,x,y,f)
+            
+            nF = numel(obj.GPs);
+
+            for i = nF:-1:f+1
+                    obj.GPs{i} = obj.GPs{i}.resolve(x,y{i});
+                    obj.Zd{i} = obj.Zd{i}.resolve(x,y{i-1} - (obj.rho{i}*obj.GPs{i}.eval(x)));
+                    
+            end
+            
+             obj.GPs{f} = obj.GPs{f}.resolve(x,y{f});
+            
+        end
+
         function [y,sig] = eval(obj,x)
             
             nF = numel(obj.GPs);
