@@ -12,8 +12,8 @@ classdef GP
         X
         Y
 
-        lb_x
-        ub_x
+        lb_x=0;
+        ub_x=1;
     end
 
     methods

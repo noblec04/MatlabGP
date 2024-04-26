@@ -23,7 +23,7 @@ classdef Kernel
             b = dot(x2,x2,2);
             c = x1*x2';
 
-            D = sqrt(abs(a + b' - 2*c));
+            D = abs(sqrt(abs(a + b' - 2*c)));
 
         end
 
@@ -76,21 +76,18 @@ classdef Kernel
                             K = K + obj.scales{i}*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
                         end
 
-                    case '-'
-                        if nargout>1
-                            [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                            K = K - obj.scales{i}*K1;
-                            dKs{i} = -1*obj.scales{i}*dK1;
-                        else
-                            K = K - obj.scales{i}*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                        end
-
                     case '*'
                         if nargout>1
                             [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
 
                             for kk = 1:size(dK1,3)
                                 dki(:,:,kk) = obj.scales{i}*K.*dK1(:,:,kk);
+                            end
+
+                            if i>1
+                                for jj = 1:i-1
+                                    dKs{jj} = K1.*dKs{jj};
+                                end
                             end
 
                             dKs{i} = dki;
@@ -128,6 +125,15 @@ classdef Kernel
 
         end
 
+        function obj = periodic(obj,dim,P)
+            obj.w.period = P;
+            obj.w.dim = dim;
+            for i = 1:numel(obj.kernels)
+                obj.warping{i} = obj.w;
+                obj.warping{i}.map = 'periodic';
+            end
+        end
+
         function V = getHPs(obj)
             V = cell2mat(obj.thetas);
         end
@@ -146,15 +152,6 @@ classdef Kernel
 
             obj.kernels{end+1} = K2;
             obj.operations{end+1} = '+';
-            obj.thetas{end+1} = K2.theta;
-            obj.scales{end+1} = K2.scale;
-            obj.warping{end+1} = K2.w;
-        end
-
-        function obj = minus(obj,K2)
-
-            obj.kernels{end+1} = K2;
-            obj.operations{end+1} = '-';
             obj.thetas{end+1} = K2.theta;
             obj.scales{end+1} = K2.scale;
             obj.warping{end+1} = K2.w;

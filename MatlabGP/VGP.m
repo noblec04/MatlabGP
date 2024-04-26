@@ -231,11 +231,12 @@ classdef VGP
                 xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
                 [k2s] = obj.kernel.build(xu,xsc);
-                obj.alpha = obj.alpha + k2s*y/obj.kernel.signn;
-
+                
                 obj.B = obj.B + k2s*k2s'/obj.kernel.signn;
                 obj.M = obj.Kuu + obj.B;
                 obj.Minv = pinv(obj.M);
+
+                obj.alpha = obj.alpha + k2s*y/obj.kernel.signn;
             end
             
         end

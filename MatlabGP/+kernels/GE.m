@@ -1,4 +1,4 @@
-classdef RQ<kernels.Kernel
+classdef GE<kernels.Kernel
     
     properties
         theta
@@ -6,7 +6,7 @@ classdef RQ<kernels.Kernel
 
     methods
 
-        function obj = RQ(scale,theta)
+        function obj = GE(scale,theta)
             obj.scale = scale;
             obj.scales{1} = scale;
             obj.theta = theta;
@@ -22,18 +22,18 @@ classdef RQ<kernels.Kernel
             nD = size(x1,2);
             nT = numel(theta);
 
-            d = obj.dist(x1./theta,x2./theta);
+            sig1 = theta(1);
+            sig2 = theta(2);
 
-            alpha = 1;
-        
-            K = (1 + (d.^2)/2).^(-1*alpha);
+            d = obj.dist(x1./sig2,x2./sig2);
+
+            d1 = x1*x1'/sig1;
+            d2 = x2*x2'/sig1;
+
+            K = exp(-abs(d1))*exp(-d.^2)*exp(-abs(d2));            
 
             if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT);
-                for i = 1:nT
-                    dK(:,:,i) = (1/theta(i))*((x1(:,i) - x2(:,i)').^2).*K.^2;
-                end
-                dK(abs(dK(:,:,1:nT)) < 1e-12) = 0;
+                dK = 0*K;
             end
         end
 

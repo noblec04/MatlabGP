@@ -1,4 +1,4 @@
-classdef EQ<kernels.Kernel
+classdef LIN<kernels.Kernel
     
     properties
         theta
@@ -6,7 +6,7 @@ classdef EQ<kernels.Kernel
 
     methods
 
-        function obj = EQ(scale,theta)
+        function obj = LIN(scale,theta)
             obj.scale = scale;
             obj.scales{1} = scale;
             obj.theta = theta;
@@ -22,17 +22,21 @@ classdef EQ<kernels.Kernel
             nD = size(x1,2);
             nT = numel(theta);
 
-            d = obj.dist(x1./theta,x2./theta);
-
-            K = exp(-d.^2);
+            x1 = x1./theta;
+            x2 = x2./theta;
+           
+            K = x1*x2';            
 
             if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT);
-                for i = 1:nT
-                    dK(:,:,i) = (2/theta(i))*((x1(:,i) - x2(:,i)').^2).*K;
-                end
-                dK(abs(dK(:,:,1:nT)) < 1e-12) = 0;
+                dK = 0*K;
             end
+        end
+
+        function obj = periodic(obj,dim,P)
+            obj.w.period = P;
+            obj.w.dim = dim;
+            obj.warping{1} = obj.w;
+            obj.warping{1}.map = 'periodic';
         end
     end
 end
