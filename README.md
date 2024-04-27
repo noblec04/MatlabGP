@@ -50,9 +50,7 @@ Z2 = Z1.train();
 
 [ys,sig] = Z2.eval(xx);
 
-figure(4)
-
-clf(4)
+figure
 
 plot(xx,ys)
 
