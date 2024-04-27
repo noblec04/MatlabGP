@@ -8,10 +8,10 @@
   - Lin - Linear
   - GE - Gaussian Envelope
  +means
-  -zero
-  -linear
-  -sine
-  -const
+  - zero
+  - linear
+  - sine
+  - const
 
 GP - Exact GP with gaussian likelihood
 VGP - Variational GP with gaussian likelihood
