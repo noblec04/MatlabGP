@@ -1,13 +1,13 @@
 # MatlabGP
- flexible GP model with user friendly kernel construction inspired by STHENO.
+flexible GP model with user friendly kernel construction inspired by STHENO.
 
- +kernels
++kernels
   - EQ - squared exponential
   - RQ - rational quadratic
   - Matern52
   - Lin - Linear
   - GE - Gaussian Envelope
- +means
++means
   - zero
   - linear
   - sine
