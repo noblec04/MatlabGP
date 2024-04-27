@@ -7,6 +7,7 @@ flexible GP model with user friendly kernel construction inspired by STHENO.
   - Matern52
   - Lin - Linear
   - GE - Gaussian Envelope
+
 +means
   - zero
   - linear
