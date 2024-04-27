@@ -33,6 +33,7 @@ Example:
 f1 = @(x) (6*x-2).^2.*sin(12*x-4);
 
 x1 = lhsdesign(6,1);
+
 y1 = f1(x1);
 
 a = means.linear(4)*means.sine(1,3,0,1);
@@ -50,10 +51,17 @@ Z2 = Z1.train();
 [ys,sig] = Z2.eval(xx);
 
 figure(4)
+
 clf(4)
+
 plot(xx,ys)
+
 hold on
+
 plot(xx,ys+2*sqrt(sig),'--')
+
 plot(xx,ys-2*sqrt(sig),'--')
+
 plot(xx,yy,'-.')
+
 plot(x1,y1,'+')
