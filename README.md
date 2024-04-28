@@ -80,7 +80,7 @@ plot(xx,yy,'-.')
 plot(x1,y1,'+')
 ```
 
-![figure_0.png](MatlabGP/docs/TestGPClass_images/figure_0.png)
+![Untrained Predictive Distribution](MatlabGP/docs/TestGPClass_images/figure_0.png)
 
 ```matlab:Code
 figure(4)
@@ -95,7 +95,7 @@ for i = 1:30
 end
 ```
 
-![figure_1.png](MatlabGP/docs/TestGPClass_images/figure_1.png)
+![Sampled untrained Posterior](MatlabGP/docs/TestGPClass_images/figure_1.png)
 
 ```matlab:Code
 tic
@@ -120,4 +120,4 @@ plot(xx,yy,'-.')
 plot(x1,y1,'+')
 ```
 
-![figure_2.png](MatlabGP/docs/TestGPClass_images/figure_2.png)
+![Trained GP](MatlabGP/docs/TestGPClass_images/figure_2.png)
