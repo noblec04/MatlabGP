@@ -75,10 +75,6 @@ plot(x1,y1,'+')
 ![figure_0.png](MatlabGP/docs/TestGPClass_images/figure_0.png)
 
 ```matlab:Code
-
-```
-
-```matlab:Code
 figure(4)
 plot(xx,ys)
 hold on
