@@ -15,7 +15,9 @@ flexible GP model with user friendly kernel construction inspired by STHENO.
   - const
 
 GP - Exact GP with gaussian likelihood
+
 VGP - Variational GP with gaussian likelihood
+
 MFGP - An AR(1) multi-fidelity GP using Le Gratiet simplification (nF Cov matrices rather than 1 large Cov matrix)
 
 Means can be added or multiplied together or divided. Kernels can be added or multiplied.
