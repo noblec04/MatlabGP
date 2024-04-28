@@ -1,3 +1,19 @@
+%{
+    Gaussian Process
+    
+    An exact Gaussian Process with Gaussian Likelihood.
+
+    A mean and kernel function can be created from which the GP can be
+    generated.
+
+    The GP can then be conditioned on training data.
+
+    The GP can then be trained to optimize the HPs of the mean and kernel
+    by finding the mean of the posterior distribution over parameters, or
+    by finding the MAP estimate if the number of HPs is large.
+
+%}
+
 classdef GP
     
     properties
@@ -115,7 +131,6 @@ classdef GP
             
             if nargout>1
                 [mm,dm] = obj.mean.eval(obj.X);
-
                 res = obj.Y - mm;
             else
                 res = obj.Y - obj.mean.eval(obj.X);

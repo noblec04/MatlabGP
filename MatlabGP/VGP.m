@@ -1,3 +1,22 @@
+%{
+    Variational Gaussian Process
+    
+    An approximate Gaussian process model that uses inducing points to
+    create a low rank approximate conditional predictive distribution.
+
+    This class allows the user to pass in a mean and kernel model and a set
+    of inducing points.
+
+    The model can then be conditioned on training data, x and y.
+
+    The model can then be trained to optimize hyperparameters of the mean
+    and the kernel.
+
+    The class provides a method for adding inducing points from the
+    training set that maximize the change in the predictive distribution.
+
+%}
+
 classdef VGP
     
     properties

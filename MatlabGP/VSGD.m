@@ -14,7 +14,7 @@ function [x,Fx,xv,fv] = VSGD(F,x0,varargin)
     F - anonymous function to minimize (must return value and gradient)
     x0 - initial guess point
     
-    Optional Inout:
+    Optional Input:
     lb - lower bound (reflective lower bound has been added)
     ub - upper bound (reflective upper bound has been added)
     gamma - prior strength (belief about noise in gradients)
@@ -25,6 +25,11 @@ function [x,Fx,xv,fv] = VSGD(F,x0,varargin)
     iters - maximum number of iterations
     tol - target tolerance on minimum
 
+    Output:
+    x - optimum location
+    Fx - value at optimum
+    xv - trajectory 
+    fv - value at trajectory locations
 
 %}
 

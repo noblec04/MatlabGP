@@ -1,3 +1,18 @@
+%{
+    Multi-Fidelity Gaussian Process
+    
+    An auto-regressive (AR(1)) model based on Kennedy and O'Hagan using the
+    recursive formulation of Le Gratiet.
+
+    The model can be constructed using data from nF fidelities.
+
+    First nF GPs must be conditioned on data from each fidelity. These can
+    be passed to this class along with means and kernels to be used for the
+    GP models on the Zdi terms. The MF model can then be trained to
+    optimize these means and kernels HPs.
+
+%}
+
 classdef MFGP
     
     properties
