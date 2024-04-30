@@ -39,7 +39,7 @@ input.PartialMatching=false;
 input.addOptional('lb',[]);
 input.addOptional('ub',[]);
 input.addOptional('gamma',1*10^(-7));
-input.addOptional('Kg',10);
+input.addOptional('Kg',30);
 input.addOptional('kappa1',0.81);
 input.addOptional('kappa2',0.9);
 input.addOptional('lr',0.1);
@@ -55,16 +55,16 @@ kappa1 = in.kappa1;
 kappa2 = in.kappa2;
 lr = in.lr;
 
-ag = gamma;
-agh = gamma;
+ag = 0*x0 + gamma;
+agh = 0*x0 + gamma;
 
-bg = gamma;
-bgh = Kg*gamma;
+bg = 0*x0 + gamma;
+bgh = 0*x0 + Kg*gamma;
 mug = 0*x0;
 
 x = x0;
 
-xv(1,:) = x;
+xv(:,1) = x;
 
 err = 2*in.tol;
 
@@ -105,8 +105,8 @@ while abs(err)>in.tol
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %store trajectory
-    xv(i,:) = x;
-    fv(i,:) = Fx;
+    xv(:,i) = x;
+    fv(:,i) = Fx;
 
     %calculate relative change in min function value
     if i >1
@@ -143,12 +143,17 @@ while abs(err)>in.tol
     if Fx>min(fv) && rand()>0.8 && i>2
 
         [~,ind] = min(fv);
-        x = xv(ind,:);
+        x = xv(:,ind);
     end
 
     
     
 end
 
+if Fx>min(fv)
+    [~,ind] = min(fv);
+    x = xv(:,ind);
+    Fx = fv(:,ind);
+end
 
 end
