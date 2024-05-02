@@ -3,13 +3,15 @@ classdef NN
     properties
         layers
         activations
+        lossfunc
     end
 
     methods
 
-        function obj = NN(layers,activations)
+        function obj = NN(layers,activations,loss)
             obj.layers = layers;
             obj.activations = activations;
+            obj.lossfunc = loss;
         end
 
         function [y,obj] = forward(obj,x)
@@ -30,11 +32,11 @@ classdef NN
 
         end
 
-        function [obj] = backward(obj,e)
+        function [obj] = backward(obj,de)
 
             nl = numel(obj.layers);
 
-            obj.layers{nl}.sensitivity = -2*e;
+            obj.layers{nl}.sensitivity = de;
 
             for i = nl-1:-1:1
                 [~,da] = obj.activations{i}.forward(obj.layers{i}.out);
@@ -91,24 +93,20 @@ classdef NN
 
             obj = obj.setHPs(V);
 
-            its = 1:length(x);%randsample(size(x,1),max(5,ceil(size(x,1)/50)));
-
-            nx = length(its);
+            nx = size(x,1);
 
             for i = 1:nx
 
-                j = its(i);
+                [yp(i,:),obj] = obj.forward(x(i,:));
 
-                [yp(i,:),obj] = obj.forward(x(j,:));
+                [e(i),de] = obj.lossfunc.forward(y(i,:),yp(i,:));
 
-                e(i,:) = y(j,:) - yp(i,:);
+                [obj] = obj.backward(de);
 
-                [obj] = obj.backward(e(i,:));
-
-                dy(i,:) = obj.getGrads(x(j,:));
+                dy(i,:) = obj.getGrads(x(i,:));
             end
 
-            e = sum((y(its,:) - yp).^2,"all");
+            e = sum(e,"all");
             de = sum(dy,1)';
 
         end
@@ -119,7 +117,7 @@ classdef NN
 
             func = @(V) obj.loss(V,x,y);
 
-            [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',5000,'tol',1*10^(-7));
+            [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',10000,'tol',1*10^(-8));
 
             obj = obj.setHPs(theta);
         end

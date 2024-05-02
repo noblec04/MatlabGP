@@ -195,33 +195,47 @@ classdef VGP
 
             tk0 = obj.kernel.getHPs();
 
-            tklb = 0*tk0 + 0.01;
-            tkub = 0*tk0 + 3;
+            tklb = 0*tk0 + 0.001;
+            tkub = 0*tk0 + 2;
 
             tlb = [tmlb tklb];
             tub = [tmub tkub];
 
             if regress
                 tlb(end+1) = 0.001;
-                tub(end+1) = 5;
+                tub(end+1) = std(obj.Y)/5;
             end
 
             func = @(x) obj.LL(x,regress);
-            opts = bads('Defaults');
-            opts.Display = 'final';
-            opts.TolFun = 10^(-2);
-            opts.TolMesh = 10^(-2);
 
-            for i = 1:3
-                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-                
-                [theta{i},val(i)] = bads(func,tx0,tlb,tub,tlb,tub,[],opts);
 
+            xxt = tlb + (tub - tlb).*lhsdesign(100*length(tlb),length(tlb));
+
+            for ii = 1:size(xxt,1)
+                LL(ii) = -1*func(xxt(ii,:));
             end
 
-            [nll,i] = min(val);
+            LL = exp(1 + LL - max(LL));
 
-            theta = theta{i};
+            theta = sum(xxt.*LL')/sum(LL);
+
+            nll = sum(LL);
+
+            % opts = bads('Defaults');
+            % opts.Display = 'final';
+            % opts.TolFun = 10^(-2);
+            % opts.TolMesh = 10^(-2);
+            % 
+            % for i = 1:3
+            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+            % 
+            %     [theta{i},val(i)] = bads(func,tx0,tlb,tub,tlb,tub,[],opts);
+            % 
+            % end
+            % 
+            % [nll,i] = min(val);
+            % 
+            % theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);
