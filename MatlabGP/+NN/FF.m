@@ -10,8 +10,8 @@ classdef FF
     methods
 
         function obj = FF(in,out)
-            obj.weight = normrnd(zeros(out,in),1);
-            obj.biases = normrnd(zeros(out,1),1);
+            obj.weight = normrnd(zeros(out,in),sqrt(1/in));
+            obj.biases = normrnd(zeros(out,1),sqrt(1/in));
         end
 
         function [y] = forward(obj,x)

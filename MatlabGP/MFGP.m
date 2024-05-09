@@ -31,6 +31,9 @@ classdef MFGP
 
             nF = numel(GPs);
 
+            obj.lb_x = GPs{1}.lb_x;
+            obj.ub_x = GPs{1}.ub_x;
+
             for i = nF:-1:2
                 mdl = fitlm(GPs{i}.eval(GPs{i-1}.X),GPs{i-1}.Y);
                 obj.rho{i} = mdl.Coefficients.Estimate(2);

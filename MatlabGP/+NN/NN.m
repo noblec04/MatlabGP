@@ -4,6 +4,9 @@ classdef NN
         layers
         activations
         lossfunc
+
+        lb_x
+        ub_x
     end
 
     methods
@@ -18,11 +21,26 @@ classdef NN
 
             nl = numel(obj.layers);
 
-            y = obj.layers{1}.forward(x);
-            [y] = obj.activations{1}.forward(y);
-            obj.layers{1}.out = y;
+            y=x;
 
-            for i = 2:nl-1
+            for i = 1:nl-1
+                [y] = obj.layers{i}.forward(y);
+                [y] = obj.activations{i}.forward(y);
+                obj.layers{i}.out = y;
+            end
+
+            [y] = obj.layers{nl}.forward(y);
+
+        end
+
+        function [y,obj] = predict(obj,x)
+
+            nl = numel(obj.layers);
+            
+            x = (x' - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            y=x';
+
+            for i = 1:nl-1
                 [y] = obj.layers{i}.forward(y);
                 [y] = obj.activations{i}.forward(y);
                 obj.layers{i}.out = y;
@@ -97,13 +115,15 @@ classdef NN
 
             for i = 1:nx
 
-                [yp(i,:),obj] = obj.forward(x(i,:));
+                xa = x(i,:);
 
-                [e(i),de] = obj.lossfunc.forward(y(i,:),yp(i,:));
+                [yp(i,:),obj] = obj.forward(xa');
+
+                [e(i,:),de] = obj.lossfunc.forward(y(i,:),yp(i,:));
 
                 [obj] = obj.backward(de);
 
-                dy(i,:) = obj.getGrads(x(i,:));
+                dy(i,:) = obj.getGrads(xa');
             end
 
             e = sum(e,"all");
@@ -113,11 +133,16 @@ classdef NN
 
         function [obj,fval,xv,fv] = train(obj,x,y)
 
+            obj.lb_x = min(x);
+            obj.ub_x = max(x);
+
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
             tx0 = obj.getHPs();
 
             func = @(V) obj.loss(V,x,y);
 
-            [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',10000,'tol',1*10^(-8));
+            [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.1,'iters',3000,'tol',1*10^(-7));
 
             obj = obj.setHPs(theta);
         end

@@ -12,9 +12,9 @@ classdef MSE
 
         function [e,de] = forward(~,y,yp)
 
-            e = (y - yp).^2;
+            e = sum((y - yp).^2);
 
-            de = -2*(y - yp);
+            de(:,1) = -2*(y - yp);
 
         end
     end

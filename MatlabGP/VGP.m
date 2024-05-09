@@ -209,7 +209,7 @@ classdef VGP
             func = @(x) obj.LL(x,regress);
 
 
-            xxt = tlb + (tub - tlb).*lhsdesign(100*length(tlb),length(tlb));
+            xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)
                 LL(ii) = -1*func(xxt(ii,:));

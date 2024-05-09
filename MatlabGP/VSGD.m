@@ -146,7 +146,16 @@ while abs(err)>in.tol
         x = xv(:,ind);
     end
 
-    
+    % figure(1)
+    % hold on
+    % plot(i,Fx,'.')
+
+    % if i>1
+    %     figure(2)
+    %     clf(2)
+    %     pcolor(xv)
+    %     shading flat
+    % end
     
 end
 
