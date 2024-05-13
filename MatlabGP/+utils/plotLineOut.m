@@ -20,7 +20,7 @@ in=input.Results;
 a=in.lb(dim);
 b=in.ub(dim);
 
-n = 50;
+n = 200;
 
 xx = linspace(a,b,n);
 Xn=zeros(n,length(X0));

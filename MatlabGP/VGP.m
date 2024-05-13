@@ -144,13 +144,13 @@ classdef VGP
             obj.kernel.scale = std(Y)/2;
 
             obj.Kuu = obj.kernel.build(xu,xu);
-            obj.Kuuinv = inv(obj.Kuu);
+            obj.Kuuinv = pinv(obj.Kuu);
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
             obj.B = obj.Kuf*obj.Kuf'/obj.kernel.signn;
             obj.M = obj.Kuu + obj.B;
-            obj.Minv = inv(obj.M);
+            obj.Minv = pinv(obj.M);
 
             obj.alpha = obj.Minv*obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn;
 
