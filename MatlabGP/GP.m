@@ -71,7 +71,7 @@ classdef GP
                 dksf = obj.kernel.grad(xs,xx);
                 [~,dm] = obj.mean.eval(x);
 
-                dy = dm + dksf*obj.alpha;
+                dy = dm + (dksf'*obj.alpha)';
             end
 
         end
@@ -88,7 +88,7 @@ classdef GP
 
             if nargout>1
                 dksf = obj.kernel.grad(xs,xx);
-                dsig = -1*(-2*dot(ksf,obj.Kinv*dksf')');
+                dsig = -1*(-2*(ksf*obj.Kinv*dksf));
             end
 
         end
@@ -117,13 +117,18 @@ classdef GP
             
         end
 
-        function [obj,dm,dK] = condition(obj,X,Y)
+        function [obj,dm,dK] = condition(obj,X,Y,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
 
-            obj.lb_x = min(X);
-            obj.ub_x = max(X);
+            if nargin<4
+                obj.lb_x = min(X);
+                obj.ub_x = max(X);
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
 
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
@@ -136,9 +141,9 @@ classdef GP
                 res = obj.Y - obj.mean.eval(obj.X);
             end
 
-            kkp = pinv(obj.K,1*10^(-7));
+            kkp = pinv(obj.K,1*10^(-8));
 
-            sigp = sqrt(dot((res'),kkp*(res))./(size(obj.Y,1)));
+            sigp = sqrt(abs(dot((res'),kkp*(res))./(size(obj.Y,1))));
             
             if isinf(sigp)
                 sigp = std(obj.Y);
@@ -152,9 +157,9 @@ classdef GP
                 [obj.K] = obj.kernel.build(xx,xx);
             end
 
-            obj.K = obj.K + diag(0*xx+obj.kernel.signn);
+            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
-            obj.Kinv = pinv(obj.K,1*10^(-7));
+            obj.Kinv = pinv(obj.K,1*10^(-8));
 
             obj.alpha = obj.Kinv*(res);
 
@@ -202,6 +207,27 @@ classdef GP
                     dnLL(end+1) = -1*sum(sum(2*sqrt(obj.kernel.signn)*(obj.alpha*obj.alpha' - obj.Kinv)));
                 end
             end
+
+        end
+
+        function [thetas,ntm,ntk,tm0,tk0] = getHPs(obj)
+
+            tm0 = obj.mean.getHPs();
+            tk0 = obj.kernel.getHPs();
+
+            ntm = numel(tm0);
+            ntk = numel(tk0);
+
+            thetas = [tm0 tk0];
+
+        end
+
+        function obj = setHPs(obj,theta)
+
+            [~,ntm,~] = obj.getHPs();
+            
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
 
         end
 

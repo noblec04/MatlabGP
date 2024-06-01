@@ -64,7 +64,7 @@ mug = 0*x0;
 
 x = x0;
 
-xv(:,1) = x;
+xv(1,:) = x;
 
 err = 2*in.tol;
 
@@ -105,8 +105,8 @@ while abs(err)>in.tol
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %store trajectory
-    xv(:,i) = x;
-    fv(:,i) = Fx;
+    xv(i,:) = x;
+    fv(i,:) = Fx;
 
     %calculate relative change in min function value
     if i >1
@@ -143,7 +143,7 @@ while abs(err)>in.tol
     if Fx>min(fv) && rand()>0.8 && i>2
 
         [~,ind] = min(fv);
-        x = xv(:,ind);
+        x = xv(ind,:);
     end
 
     % figure(1)
@@ -161,8 +161,8 @@ end
 
 if Fx>min(fv)
     [~,ind] = min(fv);
-    x = xv(:,ind);
-    Fx = fv(:,ind);
+    x = xv(ind,:);
+    Fx = fv(ind,:);
 end
 
 end

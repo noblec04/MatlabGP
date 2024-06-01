@@ -9,6 +9,7 @@ classdef Kernel
         scale
         w
         signn=0;
+        X=[];
     end
 
     methods
@@ -121,7 +122,7 @@ classdef Kernel
 
             dK = full(AutoDiffJacobianAutoDiff(@(x) obj.build(x,x2),x1));
 
-            dK = reshape(dK,[a c b]);
+            dK = squeeze(reshape(dK,[a c b]));
 
         end
 
