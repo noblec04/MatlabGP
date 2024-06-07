@@ -114,6 +114,10 @@ classdef Kernel
 
         end
 
+        function K = buildReflect()
+
+        end
+
         function dK = grad(obj,x1,x2)
 
             a = size(x1,1);
