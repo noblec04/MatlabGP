@@ -1,12 +1,12 @@
 function [x,R,Q,Z] = opt(f,FF,lb,ub)
 
-x0 = lb + (ub - lb).*lhsdesign(10,length(lb));
+x0 = lb + (ub - lb).*lhsdesign(20,length(lb));
 y0 = f(x0);
 
 a = means.linear(ones(1,length(lb)))*means.linear(ones(1,length(lb))) + means.linear(ones(1,length(lb))) + means.const(1);
 
 b = kernels.RQ(1,0.2*ones(1,length(lb)));
-b.signn = 0.00001;
+b.signn = 0.0001;
 
 Z = GP(a,b);
 Z = Z.condition(x0,y0,lb,ub);
@@ -16,7 +16,7 @@ Z = Z.train();
 
 %fx = figure();
 
-for i = 1:50
+for i = 1:40
     i
     [x] = BO.argmin(FF,Z);
 

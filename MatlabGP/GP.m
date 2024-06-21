@@ -53,7 +53,7 @@ classdef GP
 
             if nargout>1
                 kss = obj.kernel.build(xs,xs);
-                sig = abs(diag(kss) - dot(ksf',obj.Kinv*ksf')');
+                sig = abs(diag(kss)  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
 
         end
@@ -96,7 +96,7 @@ classdef GP
 
         function y = samplePrior(obj,x)
             
-            K = obj.kernel.build(x,x);
+            K = obj.kernel.build(x,x) + 5*eps*eye(size(x,1)) + diag(0*x(:,1)+obj.kernel.signn);
 
             y = mvnrnd(0*x(:,1),K);
 
@@ -111,7 +111,7 @@ classdef GP
 
             kss = obj.kernel.build(xs,xs);
 
-            sig = kss - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
+            sig = kss + diag(0*x(:,1)+obj.kernel.signn) - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
 
             y = mvnrnd(obj.mean.eval(x) + ksf*obj.alpha,sig);
             
@@ -141,7 +141,7 @@ classdef GP
                 res = obj.Y - obj.mean.eval(obj.X);
             end
 
-            kkp = pinv(obj.K,1*10^(-8));
+            kkp = pinv(obj.K,1*10^(-7));
 
             sigp = sqrt(abs(dot((res'),kkp*(res))./(size(obj.Y,1))));
             
@@ -159,7 +159,7 @@ classdef GP
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
-            obj.Kinv = pinv(obj.K,1*10^(-8));
+            obj.Kinv = pinv(obj.K,1*10^(-7));
 
             obj.alpha = obj.Kinv*(res);
 
@@ -181,13 +181,13 @@ classdef GP
                 [obj] = obj.condition(obj.X,obj.Y);
             end
 
-            detk = det(obj.K);
+            detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
 
             if isnan(detk)
                 detk = eps;
             end
 
-            nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps);% + 1*sum(log(gampdf(theta,3,2)));
+            nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(theta,1.1,0.5)));
 
             nll = -1*nll;
 
@@ -245,8 +245,8 @@ classdef GP
 
             tk0 = obj.kernel.getHPs();
 
-            tklb = 0*tk0 + 0.01;
-            tkub = 0*tk0 + 3;
+            tklb = 0*tk0 + 0.001;
+            tkub = 0*tk0 + 4;
 
             tlb = [tmlb tklb];
             tub = [tmub tkub];
@@ -258,21 +258,21 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            xxt = tlb + (tub - tlb).*lhsdesign(100*length(tlb),length(tlb));
+            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)
                 LL(ii) = -1*func(xxt(ii,:));
             end
 
-            LL = exp(0.5 + LL - max(LL));
+            LL = exp(1 + LL - max(LL));
 
             theta = sum(xxt.*LL')/sum(LL);
 
             % for i = 1:5
             %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
             % 
-            %     %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
-            %     [theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
+            %     [theta{i},val(i)] = bads(func,tx0,tlb,tub);
+            %     %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.01,'lb',tlb,'ub',tub,'gamma',0.01,'iters',400,'tol',1*10^(-3));
             % 
             % end
             % 

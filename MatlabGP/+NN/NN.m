@@ -109,7 +109,7 @@ classdef NN
 
         function [e,de] = loss(obj,V,x,y)
 
-            obj = obj.setHPs(V);
+            obj = obj.setHPs(V(:));
 
             nx = size(x,1);
 
@@ -127,7 +127,7 @@ classdef NN
             end
 
             e = sum(e,"all");
-            de = sum(dy,1)';
+            de = sum(dy,1);
 
         end
 
@@ -138,13 +138,13 @@ classdef NN
 
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            tx0 = obj.getHPs();
+            tx0 = (obj.getHPs())';
 
             func = @(V) obj.loss(V,x,y);
 
             [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.1,'iters',3000,'tol',1*10^(-7));
 
-            obj = obj.setHPs(theta);
+            obj = obj.setHPs(theta(:));
         end
     end
 end

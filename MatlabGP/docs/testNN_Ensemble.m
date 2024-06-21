@@ -9,33 +9,41 @@ yy = forr(xx,0);
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FF(1,20);
-layers{2} = NN.FF(20,10);
-layers{3} = NN.FF(10,3);
+layers{1} = NN.FF(1,8);
+layers{2} = NN.FF(8,8);
+layers{3} = NN.FF(8,3);
 
-acts{1} = NN.SWISH(1);
-acts{2} = NN.LIN();
+acts{1} = NN.TANH();
+acts{2} = NN.SWISH(1);
 
 lss = NN.MSE();
 
-
-nnet = NN.NN(layers,acts,lss);
+nE = 20;
+for i = 1:nE
+    nnet{i} = NN.NN(layers,acts,lss);
+end
 
 %%
 tic
-[nnet2,fval,xv,fv] = nnet.train(xx,yy);
+for i = 1:nE
+    [nnet2{i},~,~,fv{i}] = nnet{i}.train(xx,yy);
+end
 toc
 
 %%
-
-for j = 1:length(xmesh)
-    %yp1(:,j) = nnet.predict(xmesh(j,:)');
-    yp2(:,j) = nnet2.predict(xmesh(j));
+for i = 1:nE
+    for j = 1:length(xmesh)
+        %yp1(:,j) = nnet.predict(xmesh(j,:)');
+        yp2(:,j,i) = nnet2{i}.predict(xmesh(j));
+    end
 end
 
 %%
 figure
-plot(fv,'.')
+hold on
+for i = 1:nE
+    plot(fv{i},'.')
+end
 set(gca,'yscale','log')
 set(gca,'xscale','log')
 
@@ -43,7 +51,9 @@ figure
 plot(xmesh,ymesh)
 hold on
 %plot(xmesh,yp1)
-plot(xmesh,yp2)
+plot(xmesh,squeeze(mean(yp2,3)))
+plot(xmesh,squeeze(mean(yp2,3))+squeeze(2*std(yp2,0,3)),'k--')
+plot(xmesh,squeeze(mean(yp2,3))-squeeze(2*std(yp2,0,3)),'k--')
 plot(xx,yy,'x')
 
 %%
