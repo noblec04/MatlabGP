@@ -162,18 +162,24 @@ classdef AutoDiff
         end
         
         function x = real(x)
-            x.derivatives = real(x.derivatives)
+            x.derivatives = real(x.derivatives);
             x.values = real(x.values);
         end
 
         function x = imag(x)
-            x.derivatives = imag(x.derivatives)
+            x.derivatives = imag(x.derivatives);
             x.values = imag(x.values);
         end
         
         function x = atan(x)
             x.derivatives = AutoDiff.spdiag(1./(1 + x.values.^2)) * x.derivatives;
             x.values = atan(x.values);
+        end
+        
+        function x = erf(x)
+            tmp = 2*exp(-1*x.values.^2)/sqrt(pi);
+            x.derivatives = AutoDiff.spdiag(tmp) * x.derivatives;
+            x.values = erf(x.values);
         end
 
         function x = exp(x)

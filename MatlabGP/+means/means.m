@@ -12,12 +12,22 @@ classdef means
 
         end
 
+        function dm = grad(obj,x1)
+
+            a = size(x1,1);
+            b = size(x1,2);
+
+            dm = full(AutoDiffJacobianAutoDiff(@(x) obj.eval(x),x1));
+            dm = squeeze(reshape(dm,[a b]));
+
+        end
+
         function [y,dy] = eval(obj,x)
 
             nb = numel(obj.meanz);
 
             if nargout>1
-                [y,dy] = obj.meanz{1}.forward(x,obj.coeffs{1});
+                [y,dy{1}] = obj.meanz{1}.forward(x,obj.coeffs{1});
             else
                 y = obj.meanz{1}.forward(x,obj.coeffs{1});
             end
@@ -28,7 +38,7 @@ classdef means
                         if nargout>1
                             [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
                             y = y + y1;
-                            dy = dy + dy1;
+                            dy{i} = dy1;
                         else
                             y = y + obj.meanz{i}.forward(x,obj.coeffs{i});
                         end
@@ -37,7 +47,7 @@ classdef means
                         if nargout>1
                             [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
                             y = y - y1;
-                            dy = dy - dy1;
+                            dy{i} = dy1;
                         else
                             y = y - obj.meanz{i}.forward(x,obj.coeffs{i});
                         end
@@ -45,8 +55,8 @@ classdef means
                     case '*'
                         if nargout>1
                             [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
+                            dy{i} = y.*dy1;
                             y = y.*y1;
-                            dy = dy.*dy1;
                         else
                             y = y.*obj.meanz{i}.forward(x,obj.coeffs{i});
                         end
@@ -54,8 +64,10 @@ classdef means
                      case '/'
                         if nargout>1
                             [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
+                            
+                            dy = -1*y.*(dy1)./y1.^2;
+
                             y = y./y1;
-                            dy = dy./(dy1);
                         else
                             y = y./(obj.meanz{i}.forward(x,obj.coeffs{i}));
                         end
