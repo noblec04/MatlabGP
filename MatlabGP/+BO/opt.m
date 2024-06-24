@@ -5,7 +5,7 @@ y0 = f(x0);
 
 a = means.linear(ones(1,length(lb)))*means.linear(ones(1,length(lb))) + means.linear(ones(1,length(lb))) + means.const(1);
 
-b = kernels.RQ(1,0.2*ones(1,length(lb)));
+b = kernels.RQ(1,1,0.2*ones(1,length(lb)));
 b.signn = 0.0001;
 
 Z = GP(a,b);

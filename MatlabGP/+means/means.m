@@ -22,7 +22,7 @@ classdef means
 
         end
 
-        function [y,dy] = eval(obj,x)
+        function [y,dY] = eval(obj,x)
 
             nb = numel(obj.meanz);
 
@@ -65,13 +65,28 @@ classdef means
                         if nargout>1
                             [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
                             
-                            dy = -1*y.*(dy1)./y1.^2;
+                            dy{i} = -1*y.*(dy1)./y1.^2;
+
+                            if i>1
+                                for jj = 1:i-1
+                                    dy{jj} = y1.*dy{jj};
+                                end
+                            end
 
                             y = y./y1;
                         else
                             y = y./(obj.meanz{i}.forward(x,obj.coeffs{i}));
                         end
                         
+                end
+            end
+
+            if nargout>1
+                jj = 1;
+                for i = 1:numel(dy)
+                    nn = size(dy{i},2);
+                    dY(:,jj:jj+nn-1) = cell2mat(dy(i));
+                    jj=jj+nn;
                 end
             end
 

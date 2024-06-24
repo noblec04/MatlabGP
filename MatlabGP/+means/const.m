@@ -8,7 +8,7 @@ classdef const<means.means
 
         function [y,dy] = forward(~,x,theta)
             y = theta + 0*x(:,1);
-            dy = 0*x;
+            dy = 0*x(:,1);
         end
 
     end
