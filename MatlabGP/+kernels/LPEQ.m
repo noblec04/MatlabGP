@@ -16,27 +16,18 @@ classdef LPEQ<kernels.Kernel
             obj.warping{1} = obj.w;
         end
 
+        function [K] = forward_(obj,x1,x2,theta)
 
-        function [K,dK] = forward(obj,x1,x2,theta)
-
-            nT = numel(theta);
-            
             P = theta(1);
-            theta(1)=[];
 
-            theta1 = theta(1);
-            theta(1)=[];
-            theta2=theta;
+            theta1 = theta(2);
+            theta2=theta(3:end);
 
-            
             d1 = obj.dist(x1,x2)/P;
             d2 = obj.dist(x1./theta2,x2./theta2);
 
             K = exp(-2*(sin(pi*d1).^2)./theta1.^2).*exp(-d2.^2);
-
-            if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT);
-            end
         end
+        
     end
 end

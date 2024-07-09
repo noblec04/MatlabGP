@@ -273,6 +273,30 @@ classdef VGP
             end
             
         end
+
+        function warpedobj = exp(obj)
+
+           warpedobj = warpGP(obj,'exp');
+
+        end
+
+        function warpedobj = cos(obj)
+
+           warpedobj = warpGP(obj,'cos');
+
+        end
+
+        function warpedobj = sin(obj)
+
+           warpedobj = warpGP(obj,'sin');
+
+        end
+
+        function warpedobj = mpower(obj,~)
+
+           warpedobj = warpGP(obj,'square');
+
+        end
         
     end
 end

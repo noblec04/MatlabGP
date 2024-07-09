@@ -71,7 +71,7 @@ classdef GP
                 dksf = obj.kernel.grad(xs,xx);
                 dm = obj.mean.grad(xs);
 
-                dy = dm + (dksf'*obj.alpha)';
+                dy = dm + (dksf*obj.alpha)';
             end
 
         end
@@ -88,7 +88,7 @@ classdef GP
 
             if nargout>1
                 dksf = obj.kernel.grad(xs,xx);
-                dsig = -1*(-2*(ksf*obj.Kinv*dksf));
+                dsig = -1*(-2*(ksf*obj.Kinv*dksf'));
             end
 
         end
@@ -258,27 +258,27 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
-
-            for ii = 1:size(xxt,1)
-                LL(ii) = func(xxt(ii,:));
-            end
-
-            LL = exp(1 + LL - max(LL));
-
-            theta = sum(xxt.*LL')/sum(LL);
-
-            % for i = 1:5
-            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+            % xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
             % 
-            %     %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
-            %     [theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
-            % 
+            % for ii = 1:size(xxt,1)
+            %     LL(ii) = func(xxt(ii,:));
             % end
             % 
-            % [mval,i] = min(val);
+            % LL = exp(1 + LL - max(LL));
             % 
-            % theta = theta{i};
+            % theta = sum(xxt.*LL')/sum(LL);
+
+            for i = 1:5
+                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+
+                %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
+                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
+
+            end
+
+            [mval,i] = min(val);
+
+            theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);
@@ -333,12 +333,38 @@ classdef GP
 
         end
 
+        %Operator Overloading
+
 
         function obj = or(obj,A)
             x = A(:,1:end-1);
             y = A(:,end);
 
             obj = obj.condition(x,y);
+        end
+
+        function warpedobj = exp(obj)
+
+           warpedobj = warpGP(obj,'exp');
+
+        end
+
+        function warpedobj = cos(obj)
+
+           warpedobj = warpGP(obj,'cos');
+
+        end
+
+        function warpedobj = sin(obj)
+
+           warpedobj = warpGP(obj,'sin');
+
+        end
+
+        function warpedobj = mpower(obj,~)
+
+           warpedobj = warpGP(obj,'square');
+
         end
         
     end

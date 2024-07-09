@@ -16,24 +16,14 @@ classdef EPAN<kernels.Kernel
             obj.warping{1} = obj.w;
         end
 
-
-        function [K,dK] = forward(obj,x1,x2,theta)
-
-            nD = size(x1,2);
-            nT = numel(theta);
+        function [K] = forward_(obj,x1,x2,theta)
 
             d = obj.dist(x1./theta,x2./theta);
 
             K = (0.75/prod(theta))*(1 - d.^2);
             K(d>1) = 0;
 
-            if nargout>1
-                dK = zeros(size(K,1),size(K,2),nT);
-                for i = 1:nT
-                    dK(:,:,i) = (2/theta(i))*((x1(:,i) - x2(:,i)').^2).*K;
-                end
-                dK(abs(dK(:,:,1:nT)) < 1e-12) = 0;
-            end
         end
+
     end
 end

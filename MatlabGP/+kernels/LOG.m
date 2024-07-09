@@ -17,30 +17,12 @@ classdef LOG<kernels.Kernel
             obj.warping{1} = obj.w;
         end
 
-
-        function [K,dK] = forward(obj,x1,x2,theta)
-            
-            [nn] = size(x1,1);
-
-            nT = length(theta);
-
-            if nargout==1
+        function [K] = forward_(obj,x1,x2,theta)
 
                 d = obj.dist(x1./theta,x2./theta);
 
                 K = log(1 + d + eps)./(d + eps);
+         end
 
-            else
-                thetaAD = AutoDiff(theta);
-
-                dAD = obj.dist(x1./thetaAD,x2./thetaAD);
-
-                KAD = log(1 + dAD + eps)./(dAD + eps);
-
-                K = getvalue(KAD);
-                dK = getderivs(KAD);
-                dK = reshape(full(dK),[nn nn nT]);
-            end
-        end
     end
 end

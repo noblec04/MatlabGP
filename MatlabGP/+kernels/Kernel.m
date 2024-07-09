@@ -46,6 +46,31 @@ classdef Kernel
 
         end
 
+        function [K,dK] = forward_(obj,x1,x2,theta)
+
+        end
+
+        function [K,dK] = forward(obj,x1,x2,theta)
+
+            nn = size(x1,1);
+            nT = numel(theta);
+
+            if nargout==1
+
+                K = obj.forward_(x1,x2,theta);
+
+            else
+                thetaAD = AutoDiff(theta);
+
+                KAD = obj.forward_(x1,x2,thetaAD);
+
+                K = getvalue(KAD);
+                dK = getderivs(KAD);
+                dK = reshape(full(dK),[nn nn nT]);
+            end
+            
+        end
+
 
         function [K,dK] = build(obj,x1,x2)
             
