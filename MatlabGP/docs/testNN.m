@@ -3,18 +3,18 @@ clear all
 close all
 clc
 
-xx = [0;lhsdesign(8,1);1];
+xx = [0;lhsdesign(10,1);1];
 yy = forr(xx,0);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FF(1,20);
-layers{2} = NN.FF(20,10);
+layers{1} = NN.FF(1,5);
+layers{2} = NN.FF(5,10);
 layers{3} = NN.FF(10,3);
 
-acts{1} = NN.SWISH(1);
-acts{2} = NN.LIN();
+acts{1} = NN.SNAKE(1);
+acts{2} = NN.SWISH(1);
 
 lss = NN.MSE();
 

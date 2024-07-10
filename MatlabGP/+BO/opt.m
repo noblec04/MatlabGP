@@ -1,12 +1,12 @@
 function [x,R,Q,Z] = opt(f,FF,lb,ub)
 
-x0 = lb + (ub - lb).*lhsdesign(20,length(lb));
+x0 = lb + (ub - lb).*lhsdesign(3,length(lb));
 y0 = f(x0);
 
 a = means.linear(ones(1,length(lb)))*means.linear(ones(1,length(lb))) + means.linear(ones(1,length(lb))) + means.const(1);
 
-b = kernels.RQ(1,1,0.2*ones(1,length(lb)));
-b.signn = 0.0001;
+b = kernels.Matern52(1,0.2*ones(1,length(lb)));
+b.signn = 0;
 
 Z = GP(a,b);
 Z = Z.condition(x0,y0,lb,ub);
@@ -25,14 +25,14 @@ for i = 1:40
     x0 = [x0;x];
     y0 = [y0;y];
 
-    %Z = Z.condition(x0,y0,lb,ub);
-    Z = Z.resolve(x,y);
+    Z = Z.condition(x0,y0,lb,ub);
+    %Z = Z.resolve(x,y);
     Z.lb_x = lb;
     Z.ub_x = ub;
 
-    % if i<10
-    %     Z = Z.train();
-    % end
+    if i==15
+        Z = Z.train();
+    end
 
     [Q(i)] = min(Z.Y);
 

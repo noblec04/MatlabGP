@@ -58,7 +58,5 @@ classdef warpGP
 
         end
         
-        
-        
     end
 end

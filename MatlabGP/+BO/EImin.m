@@ -1,4 +1,4 @@
-function [alpha, dalpha] = EI(Z,x)
+function [alpha, dalpha] = EImin(Z,x)
 
 ys = min(Z.Y);
 

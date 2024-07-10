@@ -71,7 +71,7 @@ classdef GP
                 dksf = obj.kernel.grad(xs,xx);
                 dm = obj.mean.grad(xs);
 
-                dy = dm + (dksf*obj.alpha)';
+                dy = dm + (dksf'*obj.alpha)';
             end
 
         end
@@ -88,7 +88,7 @@ classdef GP
 
             if nargout>1
                 dksf = obj.kernel.grad(xs,xx);
-                dsig = -1*(-2*(ksf*obj.Kinv*dksf'));
+                dsig = -1*(-2*(ksf*obj.Kinv*dksf));
             end
 
         end
@@ -206,6 +206,7 @@ classdef GP
                 if regress
                     dnLL(end+1) = -1*sum(sum(2*sqrt(obj.kernel.signn)*(obj.alpha*obj.alpha' - obj.Kinv)));
                 end
+
             end
 
         end
@@ -268,11 +269,14 @@ classdef GP
             % 
             % theta = sum(xxt.*LL')/sum(LL);
 
-            for i = 1:5
+            for i = 1:2
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+                
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','none');
 
+                [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
                 %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
-                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
+                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
 
             end
 
