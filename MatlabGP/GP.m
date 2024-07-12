@@ -247,7 +247,7 @@ classdef GP
             tk0 = obj.kernel.getHPs();
 
             tklb = 0*tk0 + 0.001;
-            tkub = 0*tk0 + 4;
+            tkub = 0*tk0 + 10;
 
             tlb = [tmlb tklb];
             tub = [tmub tkub];
@@ -259,30 +259,30 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            % xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
-            % 
-            % for ii = 1:size(xxt,1)
-            %     LL(ii) = func(xxt(ii,:));
-            % end
-            % 
-            % LL = exp(1 + LL - max(LL));
-            % 
-            % theta = sum(xxt.*LL')/sum(LL);
+            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
 
-            for i = 1:2
-                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-                
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','none');
-
-                [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
-                %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
-                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
-
+            for ii = 1:size(xxt,1)
+                LL(ii) = func(xxt(ii,:));
             end
 
-            [mval,i] = min(val);
+            LL = exp(1 + LL - max(LL));
 
-            theta = theta{i};
+            theta = sum(xxt.*LL')/sum(LL);
+
+            % for i = 1:2
+            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+            % 
+            %     opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','none');
+            % 
+            %     [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
+            %     %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
+            %     %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
+            % 
+            % end
+            % 
+            % [mval,i] = min(val);
+            % 
+            % theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);
