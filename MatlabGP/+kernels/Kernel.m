@@ -24,7 +24,7 @@ classdef Kernel
             b = dot(x2,x2,2);
             c = x1*x2';
 
-            D = abs(sqrt(abs(a + b' - 2*c)));
+            D = sqrt(abs(a + b' - 2*c));
 
         end
 

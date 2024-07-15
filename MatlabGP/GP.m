@@ -251,6 +251,7 @@ classdef GP
 
             tlb = [tmlb tklb];
             tub = [tmub tkub];
+            %tx0 = [tm0 tk0];
 
             if regress
                 tlb(end+1) = 0;
@@ -259,7 +260,7 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
+            xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)
                 LL(ii) = func(xxt(ii,:));
@@ -270,14 +271,18 @@ classdef GP
             theta = sum(xxt.*LL')/sum(LL);
 
             % for i = 1:2
-            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+            %     %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
             % 
-            %     opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','none');
+            %     %opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','none');
             % 
-            %     [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
-            %     %[theta{i},val(i)] = bads(func,tx0,tlb,tub);
-            %     %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',400,'tol',1*10^(-4));
+            %     %[theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
             % 
+            %     opts.TolMesh = 1e-2;
+            %     opts.TolFun = 1e-2;
+            % 
+            %     [theta{i},val(i)] = bads(func,tx0,tlb,tub,[],[],[],opts);
+            %     %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',20,'tol',1*10^(-4));
+            %     %[theta{i},val(i)] = optim.minimizebnd(func,tx0,tlb,tub,1,0);
             % end
             % 
             % [mval,i] = min(val);

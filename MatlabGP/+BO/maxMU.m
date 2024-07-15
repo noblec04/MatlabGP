@@ -1,10 +1,10 @@
-function [alpha, dalpha] = maxVAR(Z,x)
+function [alpha, dalpha] = maxMU(Z,x)
 
 %Calculate std at x
-[varf,dvarf] = Z.eval_var(x);
+[muf,dmuf] = Z.eval_mu(x);
 
-alpha = -1*abs(varf);
+alpha = -1*muf;
 
-dalpha = dvarf;
+dalpha = dmuf;
 
 end
