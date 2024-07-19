@@ -3,37 +3,34 @@ clear all
 close all
 clc
 
-xx = [0;lhsdesign(30,1);1];
-yy = forr(xx,0);
+xx = [0;lhsdesign(10,1);1];
+yy = forr(xx,0) + normrnd(0*xx(:,1),0*xx(:,1) + 0.1);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FF(1,6);
-layers{2} = NN.FF(6,10);
-layers{3} = NN.FF(10,3);
+layers{1} = NN2.FF(1,6);
+layers{2} = NN2.FF(6,10);
+layers{3} = NN2.FF(10,3);
 
-acts{1} = NN.SWISH(1);
-acts{2} = NN.SNAKE(0.1);
+acts{1} = NN2.SWISH(1);
+acts{2} = NN2.SNAKE(1);
 
-lss = NN.MSE();
+lss = NN2.MSE();
 
 
-nnet = NN.NN(layers,acts,lss);
-
-%%
-for ii = 1:20
-    tic
-    [nnet2{ii},fval(ii),xv,fv] = nnet.train(xx,yy);
-    toc
-end
+nnet = NN2.NN(layers,acts,lss);
 
 %%
 
-for j = 1:length(xmesh)
-    %yp1(:,j) = nnet.predict(xmesh(j,:)');
-    yp2(:,j) = nnet2.predict(xmesh(j));
-end
+tic
+[nnet2,fval,xv,fv] = nnet.train(xx,yy);
+toc
+
+%%
+
+yp2 = nnet2.predict(xmesh);
+
 
 %%
 figure
