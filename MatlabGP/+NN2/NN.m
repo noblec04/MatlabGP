@@ -37,8 +37,8 @@ classdef NN
 
             nl = numel(obj.layers);
             
-            x = (x' - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            y=x';
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            y=x;
 
             for i = 1:nl-1
                 [y] = obj.layers{i}.forward(y);
