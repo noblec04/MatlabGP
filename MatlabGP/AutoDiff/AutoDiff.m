@@ -543,6 +543,13 @@ classdef AutoDiff
             x.derivatives = -M2 * M1 * x.derivatives;
         end
 
+        function x = pinv(x,tol)
+            x.values = pinv(x.values,tol);
+            M1 = kron(speye(size(x.values, 2)), x.values);
+            M2 = kron(x.values', speye(size(x.values, 1)));
+            x.derivatives = -M2 * M1 * x.derivatives;
+        end
+
         function z = mldivide(x, y)
             if isa(y, 'AutoDiff')
                 if isa(x, 'AutoDiff')

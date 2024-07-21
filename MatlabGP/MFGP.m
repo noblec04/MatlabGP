@@ -42,7 +42,7 @@ classdef MFGP
 
                 obj.Zd{i} = obj.Zd{i}.condition(GPs{i-1}.X,GPs{i-1}.Y - (obj.rho{i}*GPs{i}.eval(GPs{i-1}.X)));
 
-                obj.Zd{i} = obj.Zd{i}.train();
+                obj.Zd{i} = obj.Zd{i}.train2();
             end
 
         end
