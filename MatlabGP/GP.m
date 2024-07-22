@@ -145,10 +145,6 @@ classdef GP
             kkp = pinv(obj.K,0);
 
             sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
-            %sigp = std(res);
-            % if isinf(sigp)
-            %     sigp = std(obj.Y);
-            % end
 
             obj.kernel.scale = sigp^2;
 
