@@ -3,20 +3,20 @@ clear all
 close all
 clc
 
-xx = lhsdesign(50,2);
-yy = normrnd(forr(xx),0*forr(xx).^2+0);
+xx = lhsdesign(200,2);
+yy = normrnd(forr(xx),0*forr(xx).^2+0.5);
 
 xmesh = lhsdesign(1000,2);
 ymesh = forr(xmesh);
 
-layers{1} = NN2.FF(2,3);
-layers{2} = NN2.FF(3,3);
+layers{1} = NN2.FF(2,5);
+layers{2} = NN2.FF(5,3);
 layers{3} = NN2.FF(3,1);
 
 acts{1} = NN2.SWISH(1);
 acts{2} = NN2.SNAKE(1);
 
-lss = NN2.MSE();
+lss = NN2.MAE();
 
 
 nnet = NN2.NN(layers,acts,lss);

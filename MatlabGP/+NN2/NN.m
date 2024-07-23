@@ -114,7 +114,7 @@ classdef NN
             opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',5000,'MaxIterations',2000,'Display','iter');
             [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
-            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.1,'iters',3000,'tol',1*10^(-7));
+            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.001,'gamma',0.001,'iters',3000,'tol',1*10^(-7));
 
             obj = obj.setHPs(theta(:));
         end
