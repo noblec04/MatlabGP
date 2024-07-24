@@ -71,7 +71,7 @@ classdef GP
                 dksf = obj.kernel.grad(xs,xx);
                 dm = obj.mean.grad(xs);
 
-                dy = dm + (dksf*obj.alpha);
+                dy = dm + (dksf'*obj.alpha)';
             end
 
         end
