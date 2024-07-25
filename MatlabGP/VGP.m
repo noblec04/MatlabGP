@@ -74,6 +74,19 @@ classdef VGP
 
         end
 
+        function [sig] = eval_var(obj,x)
+            
+            xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+            ksu = obj.kernel.build(xs,xu);
+
+            sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
+
+            sig = obj.kernel.scale + obj.kernel.signn + sigs';
+
+        end
+
         function y = samplePrior(obj,x)
             
             K = obj.kernel.build(x,x);
