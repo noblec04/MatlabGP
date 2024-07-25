@@ -1,10 +1,17 @@
 function [alpha, dalpha] = minMU(Z,x)
 
+if nargout>1
+    x=AutoDiff(x);
+end
+
 %Calculate std at x
-[muf,dmuf] = Z.eval_mu(x);
+[muf] = Z.eval_mu(x);
 
 alpha = muf;
 
-dalpha = -1*dmuf;
+if nargout>1
+    dalpha = getderivs(alpha);
+    alpha = getvalue(alpha);
+end
 
 end

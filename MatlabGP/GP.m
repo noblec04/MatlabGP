@@ -55,7 +55,6 @@ classdef GP
                 kss = obj.kernel.build(xs,xs);
                 sig = abs(diag(kss)  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
-
         end
         
         function [y,dy] = eval_mu(obj,x)
@@ -83,8 +82,7 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            kss = obj.kernel.build(xs,xs);
-            sig = -1*abs(diag(kss) - dot(ksf',obj.Kinv*ksf')');
+            sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
 
             if nargout>1
                 dksf = obj.kernel.grad(xs,xx);
