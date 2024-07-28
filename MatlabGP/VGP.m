@@ -140,7 +140,19 @@ classdef VGP
             Y2 = obj2.eval(obj.X);
 
             dy = -1*abs(sum(Y2-Y1));
-            
+
+        end
+
+        function [thetas,ntm,ntk,tm0,tk0] = getHPs(obj)
+
+            tm0 = obj.mean.getHPs();
+            tk0 = obj.kernel.getHPs();
+
+            ntm = numel(tm0);
+            ntk = numel(tk0);
+
+            thetas = [tm0 tk0 obj.kernel.signn];
+
         end
 
         function obj = condition(obj,X,Y)
@@ -157,13 +169,13 @@ classdef VGP
             obj.kernel.scale = std(Y)/2;
 
             obj.Kuu = obj.kernel.build(xu,xu);
-            obj.Kuuinv = pinv(obj.Kuu);
+            obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
             obj.B = obj.Kuf*obj.Kuf'/obj.kernel.signn;
             obj.M = obj.Kuu + obj.B;
-            obj.Minv = pinv(obj.M);
+            obj.Minv = pinv(obj.M,1*10^(-7));
 
             obj.alpha = obj.Minv*obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn;
 
@@ -173,14 +185,15 @@ classdef VGP
 
             if regress
                 obj.kernel.signn = theta(end);
-                theta(end) = [];
             end
 
             tm0 = obj.mean.getHPs();
             ntm = numel(tm0);
+            tk0 = obj.kernel.getHPs();
+            ntk = numel(tk0);
             
             obj.mean = obj.mean.setHPs(theta(1:ntm));
-            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:ntm+ntk));
 
             obj = obj.condition(obj.X,obj.Y);
 
@@ -192,6 +205,37 @@ classdef VGP
 
             nll(isnan(nll)) = 0;
             nll(isinf(nll)) = 0;
+        end
+
+        function [loss, dloss] = loss(obj,theta,regress)
+
+            nV = length(theta(:));
+            tm0 = obj.mean.getHPs();
+            ntm = numel(tm0);
+            tk0 = obj.kernel.getHPs();
+            ntk = numel(tk0);
+
+            theta = AutoDiff(theta);
+
+            if regress
+                obj.kernel.signn = theta(ntm+ntk+1);
+            end
+
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:ntm+ntk));
+
+            obj = obj.condition(obj.X,obj.Y);
+
+            its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
+
+            nll = obj.nLL(obj.X(its,:),obj.Y(its));
+            
+            nll = -1*nll;
+
+            loss = getvalue(nll);
+            dloss = getderivs(nll);
+            dloss = reshape(full(dloss),[1 nV]);
+
         end
 
         function [obj,nll] = train(obj,regress)
@@ -222,7 +266,7 @@ classdef VGP
             func = @(x) obj.LL(x,regress);
 
 
-            xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
+            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)
                 LL(ii) = -1*func(xxt(ii,:));
@@ -249,6 +293,55 @@ classdef VGP
             % [nll,i] = min(val);
             % 
             % theta = theta{i};
+
+            if regress
+                obj.kernel.signn = theta(end);
+                theta(end) = [];
+            end
+
+            obj.mean = obj.mean.setHPs(theta(1:ntm));
+            obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
+            obj = obj.condition(obj.X,obj.Y);
+
+        end
+
+        function [obj,nll] = train2(obj,regress)
+
+            if obj.kernel.signn==0||nargin<2
+                regress=1;
+            end
+           
+            tm0 = obj.mean.getHPs();
+            ntm = numel(tm0);
+
+            tmlb = 0*tm0 - 10;
+            tmub = 0*tm0 + 10;
+
+            tk0 = obj.kernel.getHPs();
+
+            tklb = 0*tk0 + 0.001;
+            tkub = 0*tk0 + 2;
+
+            tlb = [tmlb tklb];
+            tub = [tmub tkub];
+
+            if regress
+                tlb(end+1) = 0.001;
+                tub(end+1) = std(obj.Y)/5;
+            end
+
+            func = @(x) obj.loss(x,regress);
+
+            for i = 1:3
+                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+
+                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',20,'tol',1*10^(-4));
+
+            end
+
+            [nll,i] = min(val);
+
+            theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);
