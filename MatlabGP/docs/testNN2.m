@@ -3,8 +3,8 @@ clear all
 close all
 clc
 
-xx = [0;lhsdesign(6,1);1];
-yy = normrnd(forr(xx,0),0*forr(xx,0)+0);
+xx = [0;lhsdesign(10,1);1];
+yy = normrnd(forr(xx,0),0*forr(xx,0)+0.4);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);

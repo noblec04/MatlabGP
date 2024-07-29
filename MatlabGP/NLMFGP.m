@@ -53,6 +53,10 @@ classdef NLMFGP
             obj.Zd = obj.Zd.train();
         end
 
+        function obj = train2(obj)
+            obj.Zd = obj.Zd.train2();
+        end
+
         function obj = resolve(obj,x,y,f)
             
             nF = numel(obj.GPs);

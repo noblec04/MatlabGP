@@ -325,17 +325,20 @@ classdef VGP
             tlb = [tmlb tklb];
             tub = [tmub tkub];
 
+            tx0 = [tm0 tk0];
+
             if regress
                 tlb(end+1) = 0.001;
                 tub(end+1) = std(obj.Y)/5;
+                tx0=[tx0 0.1];
             end
 
             func = @(x) obj.loss(x,regress);
 
             for i = 1:3
-                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+                %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',20,'tol',1*10^(-4));
+                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.01,'lb',tlb,'ub',tub,'gamma',0.5,'iters',200,'tol',1*10^(-5));
 
             end
 

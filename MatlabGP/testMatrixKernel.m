@@ -6,7 +6,7 @@ clc
 
 xx = lhsdesign(100,2);
 
-q = kernels.EQ_matrix(1,[2 0 3]).periodic(2,5);
+q = kernels.EQ_matrix(1,[2 0 3]);%.periodic(2,5);
 
 q.signn = 0;
 
@@ -20,7 +20,7 @@ y1 = f1(x1)+normrnd(0*x1(:,1),0*x1(:,1));
 %%
 a = means.const(0);
 
-q = kernels.EQ_matrix(1,[1 1 1]).periodic(2,5);
+q = kernels.EQ_matrix(1,[1 1 1]);%.periodic(2,5);
 
 q.signn = 0;
 
@@ -34,7 +34,7 @@ utils.plotSurf(Z1,2,1)
 
 %%
 tic
-[Z2] = Z1.train();
+[Z2] = Z1.train2();
 toc
 %%
 figure
@@ -45,3 +45,5 @@ view(20,20)
 %%
 
 [x,R] = BO.argmax(@BO.maxGrad,Z2)
+
+plot(x(1),x(2),'x','MarkerSize',18,'LineWidth',3)
