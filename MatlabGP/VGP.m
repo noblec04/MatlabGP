@@ -65,12 +65,33 @@ classdef VGP
 
             if nargout>1
 
-                kss = obj.kernel.build(xs,xs);
-
                 sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
             
-                sig = diag(kss) + obj.kernel.signn + sigs';
+                sig = obj.kernel.scale + obj.kernel.signn + sigs';
             end
+
+        end
+
+        function [y] = eval_mu(obj,x)
+            
+            xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+            ksu = obj.kernel.build(xs,xu);
+
+            y = obj.mean.eval(x) + ksu*obj.alpha;
+
+        end
+
+        function [dy] = eval_grad(obj,x)
+            
+            [nn,nx] = size(x);
+
+            x = AutoDiff(x);
+
+            y = obj.eval_mu(x);
+
+            dy = reshape(full(getderivs(y)),[nn,nx]);
 
         end
 

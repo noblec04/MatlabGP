@@ -1,9 +1,9 @@
 function [alpha, dalpha] = maxGrad(Z,x)
 
 %Calculate std at x
-[~,dmuf] = Z.eval_mu(x);
+[dmuf] = Z.eval_grad(x);
 
-[~,dmuf2] = Z.eval_mu(x+0.05);
+[dmuf2] = Z.eval_grad(x+0.05);
 
 alpha = -1*norm(dmuf);
 

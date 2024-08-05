@@ -91,6 +91,17 @@ classdef GP
 
         end
 
+        function [dy] = eval_grad(obj,x)
+            
+            [nn,nx] = size(x);
+
+            x = AutoDiff(x);
+
+            y = obj.eval_mu(x);
+
+            dy = reshape(full(getderivs(y)),[nn,nx]);
+
+        end
 
         function y = samplePrior(obj,x)
             

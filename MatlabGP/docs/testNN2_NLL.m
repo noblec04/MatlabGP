@@ -4,7 +4,7 @@ close all
 clc
 
 xx = [0;lhsdesign(300,1);1];
-yy = normrnd(forr(xx,0),0.1*abs(forr(xx,0))+0.2);
+yy = normrnd(forr(xx,0),0.1*forr(xx,0).^2+0.05);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);

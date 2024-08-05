@@ -66,7 +66,7 @@ classdef Kernel
 
                 K = getvalue(KAD);
                 dK = getderivs(KAD);
-                dK = reshape(full(dK),[nn nn nT]);
+                dK = squeeze(reshape(full(dK),[size(K) nT]));
             end
             
         end
@@ -176,6 +176,10 @@ classdef Kernel
             end
 
             obj.thetas = mat2cell(V(1:sum(nTs)),1,nTs);
+        end
+
+        function [lb,ub] = getHPBounds(obj)
+            
         end
 
         function obj = plus(obj,K2)

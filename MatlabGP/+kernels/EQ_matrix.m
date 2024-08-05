@@ -29,7 +29,7 @@ classdef EQ_matrix<kernels.Kernel
             for i = 1:size(x1,2)
                 for j = 1:i
                     n=n+1;
-                    M(i,j) = -1*M(j,i);
+                    M(i,j) = M(j,i);
                 end
             end
 
