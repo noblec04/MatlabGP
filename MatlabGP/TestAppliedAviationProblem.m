@@ -11,7 +11,7 @@ yy = StressedPlate(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,3);
 y1 = StressedPlate(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,3)];
+x2 = [lb + (ub - lb).*lhsdesign(100,3)];
 y2 = StressedPlate(x2,2);
 
 x{1} = x1;
@@ -69,7 +69,7 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 %%
 for jj = 1:60
     
-    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
 
     x{1} = [x{1}; xn];
     x{2} = [x{2}; xn];
