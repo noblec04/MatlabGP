@@ -67,7 +67,7 @@ max(abs(yy - Z{1}.eval_mu(xx)))./std(yy)
 max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
-for jj = 1:50
+for jj = 1:60
     
     [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
@@ -90,14 +90,14 @@ for jj = 1:50
     R2MF(jj) = 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy);
     RMAEMF(jj) = max(abs(yy - MF.eval_mu(xx)))./std(yy);
 
-    figure(1)
-    clf(1)
+    figure(3)
+    clf(3)
     hold on
     plot(1:jj,R2z)
     plot(1:jj,R2MF)
 
-    figure(2)
-    clf(2)
+    figure(4)
+    clf(4)
     hold on
     plot(1:jj,RMAEz)
     plot(1:jj,RMAEMF)
@@ -105,3 +105,18 @@ for jj = 1:50
     drawnow
 
 end
+
+
+%%
+
+xi = lb + (ub - lb).*lhsdesign(size(x{1},1),3);
+yi = StressedPlate(xi,1);
+
+Zi = GP(mb,b);
+Zi = Zi.condition(xi,yi,lb,ub);
+Zi = Zi.train();
+
+%%
+
+1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
+max(abs(yy - Zi.eval_mu(xx)))./std(yy)
