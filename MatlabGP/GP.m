@@ -151,7 +151,7 @@ classdef GP
                 res = obj.Y - obj.mean.eval(obj.X);
             end
 
-            kkp = pinv(obj.K,0);
+            kkp = pinv(obj.K,1*10^(-4));
 
             sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
 
@@ -165,7 +165,7 @@ classdef GP
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
-            obj.Kinv = pinv(obj.K,0);
+            obj.Kinv = pinv(obj.K,1*10^(-4));
 
             obj.alpha = obj.Kinv*(res);
 
@@ -329,7 +329,7 @@ classdef GP
 
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
-            obj = obj.condition(obj.X,obj.Y);
+            obj = obj.condition(obj.X,obj.Y,obj.lb_x,obj.ub_x);
 
         end
 
