@@ -40,11 +40,31 @@ classdef MFGP
 
                 obj.Zd{i} = GP(mean,kernel);
 
-                obj.Zd{i} = obj.Zd{i}.condition(GPs{i-1}.X,GPs{i-1}.Y - (obj.rho{i}*GPs{i}.eval(GPs{i-1}.X)));
-
-                obj.Zd{i} = obj.Zd{i}.train2();
+                % obj.Zd{i} = obj.Zd{i}.condition(GPs{i-1}.X,GPs{i-1}.Y - (obj.rho{i}*GPs{i}.eval(GPs{i-1}.X)));
+                % 
+                % obj.Zd{i} = obj.Zd{i}.train2();
             end
 
+        end
+
+        function obj = condition(obj,GPs)
+
+            nF = numel(obj.GPs);
+
+            for i = nF:-1:2
+                mdl = fitlm(GPs{i}.eval(GPs{i-1}.X),GPs{i-1}.Y);
+                obj.rho{i} = mdl.Coefficients.Estimate(2);
+
+                obj.Zd{i} = obj.Zd{i}.condition(GPs{i-1}.X,GPs{i-1}.Y - (obj.rho{i}*GPs{i}.eval(GPs{i-1}.X)));
+            end
+        end
+
+        function obj = train(obj)
+            nF = numel(obj.GPs);
+
+            for i = nF:-1:2
+                obj.Zd{i} = obj.Zd{i}.train2();
+            end
         end
 
         function obj = resolve(obj,x,y,f)

@@ -2,36 +2,43 @@
 clear all
 clc
 
-lb = [0.5 0.5 2.5*10^(-3)];
-ub = [1.5 1.5 7.5*10^(-3)];
+D = 3;
 
-xx = lb + (ub - lb).*lhsdesign(50000,3);
-yy = StressedPlate(xx,1);
+lb = -2*ones(1,D);
+ub = 2*ones(1,D);
 
-x1 = lb + (ub - lb).*lhsdesign(5,3);
-y1 = StressedPlate(x1,1);
+xx = lb + (ub - lb).*lhsdesign(50000,D);
+yy = testFuncs.Rosenbrock(xx,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,3)];
-y2 = StressedPlate(x2,2);
+x1 = lb + (ub - lb).*lhsdesign(5,D);
+y1 = testFuncs.Rosenbrock(x1,1);
+
+x2 = [lb + (ub - lb).*lhsdesign(20,D)];
+y2 = testFuncs.Rosenbrock(x2,2);
+
+x3 = [lb + (ub - lb).*lhsdesign(100,D)];
+y3 = testFuncs.Rosenbrock(x3,3);
 
 x{1} = x1;
 x{2} = x2;
+x{3} = x3;
 
 y{1} = y1;
 y{2} = y2;
+y{3} = y3;
 
 %%
-ma = means.linear([1 1 1 1]);
-mb = means.linear([1 1 1]);
+ma = means.const([1]);
+mb = means.linear(ones(1,D));
 
-a = kernels.EQ(1,[0.1 0.2 0.1 0.3]);%.periodic(1,10);
-b = kernels.EQ(1,[0.2 0.2 0.2]);
-a.signn = 0;
-b.signn = 0;
+a = kernels.EQ(1,ones(1,D+2));
+b = kernels.EQ(1,ones(1,D));
+a.signn = eps;
+b.signn = eps;
 
 %%
 tic
-for i = 1:2
+for i = 1:3
     Z{i} = GP(mb,b);
     Z{i} = Z{i}.condition(x{i},y{i},lb,ub);
     Z{i} = Z{i}.train();
@@ -49,14 +56,15 @@ toc
 %%
 figure
 hold on
-utils.plotLineOut(Z{1},(lb+ub)/2,1,'color','r')
-utils.plotLineOut(Z{2},(lb+ub)/2,1,'color','b')
+utils.plotSurf(Z{1},1,2,'color','r')
+utils.plotSurf(Z{2},1,2,'color','b')
+utils.plotSurf(Z{3},1,2,'color','g')
 
 %%
 
 figure
 hold on
-utils.plotLineOut(MF,(lb+ub)/2,1)
+utils.plotSurf(MF,1,2)
 
 %%
 
@@ -69,15 +77,17 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 %%
 for jj = 1:60
     
-    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
 
     x{1} = [x{1}; xn];
     x{2} = [x{2}; xn];
+    x{3} = [x{3}; xn];
 
-    y{1} = [y{1}; StressedPlate(xn,1)];
-    y{2} = [y{2}; StressedPlate(xn,2)];
+    y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
+    y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
+    y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
 
-    for ii = 1:2
+    for ii = 1:3
         Z{ii} = Z{ii}.condition(x{ii},y{ii},lb,ub);
     end
 
@@ -104,13 +114,17 @@ for jj = 1:60
 
     drawnow
 
+    if RMAEMF(jj)<0.1
+        break
+    end
+
 end
 
 
 %%
 
-xi = lb + (ub - lb).*lhsdesign(size(x{1},1),3);
-yi = StressedPlate(xi,1);
+xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
+yi = testFuncs.Rosenbrock(xn,1);
 
 Zi = GP(mb,b);
 Zi = Zi.condition(xi,yi,lb,ub);
