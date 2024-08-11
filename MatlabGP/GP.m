@@ -291,6 +291,8 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
+            %[xxt,LL] = optim.AdaptiveGridSampling(func,tlb,tub,10,20,4);
+
             xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)

@@ -2,7 +2,7 @@
 clear all
 clc
 
-D = 3;
+D = 2;
 
 lb = -2*ones(1,D);
 ub = 2*ones(1,D);
@@ -33,7 +33,7 @@ layers{1} = NN2.FF(D,6);
 layers{2} = NN2.FF(6,3);
 layers{3} = NN2.FF(3,1);
 
-acts{1} = NN2.SWISH(1);
+acts{1} = NN2.SNAKE(2);
 acts{2} = NN2.SWISH(1);
 
 lss = NN2.MAE();
@@ -52,7 +52,7 @@ layers{1} = NN2.FF(D+2,12);
 layers{2} = NN2.FF(12,6);
 layers{3} = NN2.FF(6,1);
 
-acts{1} = NN2.SWISH(1);
+acts{1} = NN2.SNAKE(2);
 acts{2} = NN2.SWISH(1);
 
 lss = NN2.MAE();
@@ -86,7 +86,7 @@ utils.plotSurf(NN{3},1,2,'color','g','CI',false)
 
 figure
 hold on
-utils.plotSurf(MF,3,2,'CI',false)
+utils.plotSurf(MF,1,2,'CI',false)
 
 %%
 for jj = 1:60
