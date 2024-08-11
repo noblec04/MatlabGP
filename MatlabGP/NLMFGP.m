@@ -19,6 +19,9 @@ classdef NLMFGP
         GPs
         Zd
 
+        X
+        Y
+
         lb_x
         ub_x
     end
@@ -27,15 +30,19 @@ classdef NLMFGP
 
         function obj = NLMFGP(GPs,mean,kernel)
             obj.GPs = GPs;
-
-            obj.lb_x = GPs{1}.lb_x;
-            obj.ub_x = GPs{1}.ub_x;
-
             obj.Zd = GP(mean,kernel);
 
         end
 
-        function obj = condition(obj)
+        function obj = condition(obj,lb,ub)
+
+            if nargin<2
+                obj.lb_x = obj.GPs{1}.lb_x;
+                obj.ub_x = obj.GPs{1}.ub_x;
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
 
             nF = numel(obj.GPs);
 
@@ -47,6 +54,9 @@ classdef NLMFGP
             end
 
             obj.Zd = obj.Zd.condition(Xall,obj.GPs{1}.Y);
+
+            obj.X = obj.GPs{1}.X;
+            obj.Y = obj.GPs{1}.Y;
         end
 
         function obj = train(obj)

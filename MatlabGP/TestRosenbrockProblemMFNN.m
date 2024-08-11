@@ -13,7 +13,7 @@ yy = testFuncs.Rosenbrock(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,D)];
+x2 = [lb + (ub - lb).*lhsdesign(50,D)];
 y2 = testFuncs.Rosenbrock(x2,2);
 
 x3 = [lb + (ub - lb).*lhsdesign(100,D)];
@@ -28,51 +28,65 @@ y{2} = y2;
 y{3} = y3;
 
 %%
-ma = means.const([1]);
-mb = means.linear(ones(1,D));
 
-a = kernels.RQ(2,1,ones(1,D+2));
-b = kernels.RQ(2,1,ones(1,D));
-a.signn = eps;
-b.signn = eps;
+layers{1} = NN2.FF(D,6);
+layers{2} = NN2.FF(6,3);
+layers{3} = NN2.FF(3,1);
+
+acts{1} = NN2.SWISH(1);
+acts{2} = NN2.SWISH(1);
+
+lss = NN2.MAE();
+
+nnet = NN2.NN(layers,acts,lss);
 
 %%
-tic
+
 for i = 1:3
-    Z{i} = GP(mb,b);
-    Z{i} = Z{i}.condition(x{i},y{i},lb,ub);
-    Z{i} = Z{i}.train();
+    NN{i} = nnet.train(x{i},y{i});
 end
-toc
 
 %%
+
+layers{1} = NN2.FF(D+2,12);
+layers{2} = NN2.FF(12,6);
+layers{3} = NN2.FF(6,1);
+
+acts{1} = NN2.SWISH(1);
+acts{2} = NN2.SWISH(1);
+
+lss = NN2.MAE();
+
+nnet2 = NN2.NN(layers,acts,lss);
+
+MF = NN2.MFNN(NN,nnet2);
+
+%%
+
 tic
-MF = NLMFGP(Z,ma,a);
-MF = MF.condition();
-MF = MF.train();
+MF = MF.train(NN,x,y,lb,ub);
 toc
 
-
-%%
-figure
-hold on
-utils.plotSurf(Z{1},1,2,'color','r')
-utils.plotSurf(Z{2},1,2,'color','b')
-utils.plotSurf(Z{3},1,2,'color','g')
-
 %%
 
-figure
-hold on
-utils.plotSurf(MF,3,2)
-
-%%
-
-1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy)
-max(abs(yy - Z{1}.eval_mu(xx)))./std(yy)
+1 - mean((yy - NN{1}.eval_mu(xx)).^2)./var(yy)
+max(abs(yy - NN{1}.eval_mu(xx)))./std(yy)
 
 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy)
 max(abs(yy - MF.eval_mu(xx)))./std(yy)
+
+%%
+figure
+hold on
+utils.plotSurf(NN{1},1,2,'color','r','CI',false)
+utils.plotSurf(NN{2},1,2,'color','b','CI',false)
+utils.plotSurf(NN{3},1,2,'color','g','CI',false)
+
+%%
+
+figure
+hold on
+utils.plotSurf(MF,3,2,'CI',false)
 
 %%
 for jj = 1:60
@@ -89,15 +103,14 @@ for jj = 1:60
     y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
     y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
 
-    for ii = 1:3
-        Z{ii} = Z{ii}.condition(x{ii},y{ii},lb,ub);
+    for i = 1:3
+        NN{i} = NN{i}.train(x{i},y{i});
     end
 
-    MF.GPs = Z;
-    MF = MF.condition();
+    MF = MF.train(NN,x,y,lb,ub);
 
-    R2z(jj) = 1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy);
-    RMAEz(jj) = max(abs(yy - Z{1}.eval_mu(xx)))./std(yy);
+    R2z(jj) = 1 - mean((yy - MF.GPs{1}.eval_mu(xx)).^2)./var(yy);
+    RMAEz(jj) = max(abs(yy - MF.GPs{1}.eval_mu(xx)))./std(yy);
 
     R2MF(jj) = 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy);
     RMAEMF(jj) = max(abs(yy - MF.eval_mu(xx)))./std(yy);
@@ -121,18 +134,3 @@ for jj = 1:60
     end
 
 end
-
-
-%%
-
-xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
-yi = testFuncs.Rosenbrock(xn,1);
-
-Zi = GP(mb,b);
-Zi = Zi.condition(xi,yi,lb,ub);
-Zi = Zi.train();
-
-%%
-
-1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
-max(abs(yy - Zi.eval_mu(xx)))./std(yy)

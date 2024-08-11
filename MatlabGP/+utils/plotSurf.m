@@ -14,6 +14,7 @@ input.addOptional('LS','-');
 input.addOptional('nL',50);
 input.addOptional('mb',[]);
 input.addOptional('CI',true);
+input.addOptional('color','b');
 input.parse(varargin{:})
 in=input.Results;
 
@@ -55,15 +56,15 @@ for i = 1:n
     end
 end
 
-surf(xx2,xx1,YY);
+surf(xx2,xx1,YY,'FaceAlpha',0.9,'EdgeColor','none');
 hold on
 shading interp
 utils.cmocean(in.cmap);
 
 if in.CI 
    
-    surf(xx2,xx1,YY + 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none');
-    surf(xx2,xx1,YY - 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none');
+    surf(xx2,xx1,YY + 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
+    surf(xx2,xx1,YY - 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
 end
 
 end

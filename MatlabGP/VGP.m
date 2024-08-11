@@ -176,13 +176,18 @@ classdef VGP
 
         end
 
-        function obj = condition(obj,X,Y)
+        function obj = condition(obj,X,Y,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
 
-            obj.lb_x = min(X);
-            obj.ub_x = max(X);
+            if nargin<4
+                obj.lb_x = min(X);
+                obj.ub_x = max(X);
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
 
             xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);

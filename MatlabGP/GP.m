@@ -151,7 +151,7 @@ classdef GP
                 res = obj.Y - obj.mean.eval(obj.X);
             end
 
-            kkp = pinv(obj.K,0);
+            kkp = pinv(obj.K,1*10^(-7));
 
             sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
 
@@ -165,7 +165,7 @@ classdef GP
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
-            obj.Kinv = pinv(obj.K,0);
+            obj.Kinv = pinv(obj.K,1*10^(-7));
 
             obj.alpha = obj.Kinv*(res);
 
@@ -355,7 +355,7 @@ classdef GP
             for i = 1:3
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off');
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',100,'OptimalityTolerance',1*10^(-4));
 
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
 

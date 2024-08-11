@@ -18,7 +18,6 @@ acts{2} = NN2.SNAKE(1);
 
 lss = NN2.MAE();
 
-
 nnet = NN2.NN(layers,acts,lss);
 
 %%

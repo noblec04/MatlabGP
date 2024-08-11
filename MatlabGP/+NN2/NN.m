@@ -5,6 +5,9 @@ classdef NN
         activations
         lossfunc
 
+        X
+        Y
+
         lb_x
         ub_x
     end
@@ -31,6 +34,19 @@ classdef NN
 
             [y] = obj.layers{nl}.forward(y);
 
+        end
+
+        function mu = eval_mu(obj,x)
+            mu = obj.predict(x);
+        end
+
+        function sig = eval_var(~,x)
+            sig = 0*x(:,1);
+        end
+
+        function [mu,sig] = eval(obj,x)
+            mu = obj.eval_mu(x);
+            sig = obj.eval_var(x);
         end
 
         function [y] = predict(obj,x)
@@ -99,10 +115,18 @@ classdef NN
 
         end
 
-        function [obj,fval] = train(obj,x,y)%,xv,fv
+        function [obj,fval] = train(obj,x,y,lb,ub)%,xv,fv
 
-            obj.lb_x = min(x);
-            obj.ub_x = max(x);
+            obj.X = x;
+            obj.Y = y;
+
+            if nargin<4
+                obj.lb_x = min(x);
+                obj.ub_x = max(x);
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
 
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
@@ -111,7 +135,7 @@ classdef NN
             func = @(V) obj.loss(V,x,y);
 
 
-            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',5000,'MaxIterations',2000,'Display','iter');
+            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',500,'MaxIterations',2000,'Display','final');
             [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
             %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.001,'gamma',0.001,'iters',3000,'tol',1*10^(-7));
