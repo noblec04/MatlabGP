@@ -151,7 +151,7 @@ classdef GP
                 res = obj.Y - obj.mean.eval(obj.X);
             end
 
-            kkp = pinv(obj.K,1*10^(-7));
+            kkp = pinv(obj.K,0);
 
             sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
 
@@ -165,7 +165,7 @@ classdef GP
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
-            obj.Kinv = pinv(obj.K,1*10^(-7));
+            obj.Kinv = pinv(obj.K,0);
 
             obj.alpha = obj.Kinv*(res);
 
@@ -193,11 +193,11 @@ classdef GP
                 detk = eps;
             end
 
-            %nll = -1*sum(obj.LOO());
+            %nll = sum(obj.LOO());
 
             nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(theta,1.1,0.5)));
 
-            nll = nll;
+            %nll = nll;
 
             if nargout==2
                 dnLL = zeros(1,length(theta));
@@ -245,7 +245,7 @@ classdef GP
         end
 
         function L = LOO(obj)
-            L = 0.5*log(diag(obj.K)) - 0.5*(obj.alpha.^2)./diag(obj.K);
+            L = 0.5*(obj.alpha.^2)./diag(obj.Kinv);% - 0.5*log(diag(obj.Kinv));
         end
 
         function [thetas,ntm,ntk,tm0,tk0] = getHPs(obj)

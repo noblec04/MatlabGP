@@ -97,6 +97,10 @@ classdef NLMFGP
 
         end
 
+        function L = LOO(obj)
+            L = obj.Zd.LOO();
+        end
+
         %%%%% FINISH %%%%%%
         function [y,dy] = eval_mu(obj,x)
             
