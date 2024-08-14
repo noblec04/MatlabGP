@@ -2,7 +2,7 @@
 clear all
 clc
 
-D = 3;
+D = 2;
 
 lb = -2*ones(1,D);
 ub = 2*ones(1,D);
@@ -64,7 +64,7 @@ utils.plotSurf(Z{3},1,2,'color','g')
 
 figure
 hold on
-utils.plotSurf(MF,3,2)
+utils.plotSurf(MF,1,2)
 
 %%
 
