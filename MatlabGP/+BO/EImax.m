@@ -1,21 +1,37 @@
 function [alpha, dalpha] = EImax(Z,x)
 
-ys = max(Z.Y);
+if nargout>1
+    x=AutoDiff(x);
+end
+
+ys = min(Z.Y);
 
 %Calculate std at x
-[varf,dvarf] = Z.eval_var(x);
+[varf] = Z.eval_var(x);
 
-[muf,dmuf] = Z.eval_mu(x);
+[muf] = Z.eval_mu(x);
+
+if nargout>1
+    dmuf = getderivs(muf);
+    muf = getvalue(muf);
+end
 
 sigf = sqrt(abs(varf));
-dsigf = dvarf./(2*sigf+eps);
+%dsigf = dvarf./(2*sigf+eps);
+
+if nargout>1
+    dsigf = getderivs(sigf);
+    sigf = getvalue(sigf);
+end
 
 %Calculate beta value at x
-beta = (ys - muf)/sigf;
+beta = -1*(ys - muf)/sigf;
 
 %Calculate expected improvement over current best measurement
 alpha = -sigf*(beta*normcdf(beta)+normpdf(beta));
 
-dalpha = -dmuf.*normcdf(beta) + dsigf.*normpdf(beta);
+if nargout>1
+    dalpha = -dmuf.*normcdf(beta) + dsigf.*normpdf(beta);
+end
 
 end

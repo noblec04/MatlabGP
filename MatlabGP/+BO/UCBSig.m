@@ -1,4 +1,4 @@
-function [alpha, dalpha] = UCB(Z,x)
+function [alpha, dalpha] = UCBSig(Z,x)
 
 if nargout>1
     x=AutoDiff(x);
@@ -20,10 +20,10 @@ if nargout>1
     sigf = full(getvalue(sigf));
 end
 
-alpha = -1*(muf + 2*sigf);
+alpha = -1*(muf + 2*sigf).*sigf;
 
 if nargout>1
-    dalpha = -1*(dmuf + 2*dsigf).*sigf;
+    dalpha = -1*(dmuf + 2*dsigf).*sigf + alpha.*dsigf;
 end
 
 end

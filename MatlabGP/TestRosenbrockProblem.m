@@ -2,7 +2,7 @@
 clear all
 clc
 
-D = 2;
+D = 3;
 
 lb = -2*ones(1,D);
 ub = 2*ones(1,D);
@@ -52,6 +52,14 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
+mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
+c = kernels.RQ(2,1,ones(1,D));
+c.signn = eps;
+
+LOOZ = GP(mc,c);
+LOOZ = LOOZ.condition(x{1},MF.LOO,lb,ub);
+LOOZ = LOOZ.train();
+
 
 %%
 figure
@@ -77,7 +85,8 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 %%
 for jj = 1:60
     
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.UCB,LOOZ);
+    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
     %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
 
@@ -95,6 +104,8 @@ for jj = 1:60
 
     MF.GPs = Z;
     MF = MF.condition();
+
+    LOOZ = LOOZ.condition(x{1},MF.LOO,lb,ub);
 
     R2z(jj) = 1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy);
     RMAEz(jj) = max(abs(yy - Z{1}.eval_mu(xx)))./std(yy);
