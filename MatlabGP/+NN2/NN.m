@@ -74,6 +74,7 @@ classdef NN
                 V1 = obj.layers{i}.getHPs();
                 V = [V;V1(:)];
             end
+            V = V';
         end
 
         function obj = setHPs(obj,V)

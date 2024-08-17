@@ -50,42 +50,14 @@ classdef Kernel
 
         end
 
-        function [K,dK] = forward(obj,x1,x2,theta)
-
-            nn = size(x1,1);
-            nT = numel(theta);
-
-            if nargout==1
-
-                K = obj.forward_(x1,x2,theta);
-
-            else
-                thetaAD = AutoDiff(theta);
-
-                KAD = obj.forward_(x1,x2,thetaAD);
-
-                K = getvalue(KAD);
-                dK = getderivs(KAD);
-                dK = squeeze(reshape(full(dK),[size(K) nT]));
-            end
-            
-        end
-
-
-        function [K,dK] = build(obj,x1,x2)
+        function [K] = build(obj,x1,x2)
             
             nk = numel(obj.kernels);
             
             xi1 = obj.warp(x1,obj.warping{1});
             xi2 = obj.warp(x2,obj.warping{1});
 
-            if nargout>1
-                [K,dK] = obj.kernels{1}.forward(xi1,xi2,obj.thetas{1});
-                K = obj.scales{1}*K;
-                dKs{1} = obj.scales{1}*dK;
-            else
-                K = obj.scales{1}*obj.kernels{1}.forward(xi1,xi2,obj.thetas{1});
-            end
+            K = obj.scales{1}*obj.kernels{1}.forward_(xi1,xi2,obj.thetas{1});
 
             for i = 2:nk
 
@@ -94,48 +66,17 @@ classdef Kernel
 
                 switch obj.operations{i-1}
                     case '+'
-                        if nargout>1
-                            [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                            K = K + obj.scales{i}*K1;
-                            dKs{i} = obj.scales{i}*dK1;
-                        else
-                            K = K + obj.scales{i}*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                        end
+
+                        K = K + obj.scales{i}*obj.kernels{i}.forward_(xi1,xi2,obj.thetas{i});
 
                     case '*'
-                        if nargout>1
-                            [K1,dK1] = obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
 
-                            for kk = 1:size(dK1,3)
-                                dki(:,:,kk) = obj.scales{i}*K.*dK1(:,:,kk);
-                            end
-
-                            if i>1
-                                for jj = 1:i-1
-                                    dKs{jj} = K1.*dKs{jj};
-                                end
-                            end
-
-                            dKs{i} = dki;
-
-                            K = K.*obj.scales{i}.*K1;
-                        else
-                            K = obj.scales{i}*K.*obj.kernels{i}.forward(xi1,xi2,obj.thetas{i});
-                        end
-                        
+                        K = obj.scales{i}*K.*obj.kernels{i}.forward_(xi1,xi2,obj.thetas{i});
+ 
                 end
             end
 
             K = obj.scale*K;
-
-            if nargout>1
-                jj = 1;
-                for i = 1:numel(dKs)
-                    nn = size(dKs{i},3);
-                    dK(:,:,jj:jj+nn-1) = obj.scale*cell2mat(dKs(i));
-                    jj=jj+nn;
-                end
-            end
 
         end
 

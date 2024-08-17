@@ -22,7 +22,7 @@ classdef FF
 
         function V = getHPs(obj)
 
-            V = [obj.weight(:);obj.biases];
+            V = [obj.weight(:);obj.biases(:)];
         end
 
         function obj = setHPs(obj,V)

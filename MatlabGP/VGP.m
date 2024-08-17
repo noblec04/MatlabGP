@@ -153,7 +153,7 @@ classdef VGP
 
         end
 
-        function dy = newXuDiff(obj,x)
+        function [dy] = newXuDiff(obj,x)
 
             obj2 = obj.addInducingPoints(x);
 
@@ -303,22 +303,6 @@ classdef VGP
             theta = sum(xxt.*LL')/sum(LL);
 
             nll = sum(LL);
-
-            % opts = bads('Defaults');
-            % opts.Display = 'final';
-            % opts.TolFun = 10^(-2);
-            % opts.TolMesh = 10^(-2);
-            % 
-            % for i = 1:3
-            %     tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
-            % 
-            %     [theta{i},val(i)] = bads(func,tx0,tlb,tub,tlb,tub,[],opts);
-            % 
-            % end
-            % 
-            % [nll,i] = min(val);
-            % 
-            % theta = theta{i};
 
             if regress
                 obj.kernel.signn = theta(end);

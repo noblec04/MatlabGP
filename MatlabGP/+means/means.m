@@ -22,74 +22,32 @@ classdef means
 
         end
 
-        function [y,dY] = eval(obj,x)
+        function [y] = eval(obj,x)
 
             nb = numel(obj.meanz);
 
-            if nargout>1
-                [y,dy{1}] = obj.meanz{1}.forward(x,obj.coeffs{1});
-            else
-                y = obj.meanz{1}.forward(x,obj.coeffs{1});
-            end
+            y = obj.meanz{1}.forward(x,obj.coeffs{1});
 
             for i = 2:nb
                 switch obj.operations{i-1}
                     case '+'
-                        if nargout>1
-                            [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
-                            y = y + y1;
-                            dy{i} = dy1;
-                        else
-                            y = y + obj.meanz{i}.forward(x,obj.coeffs{i});
-                        end
+                        
+                        y = y + obj.meanz{i}.forward(x,obj.coeffs{i});
 
                     case '-'
-                        if nargout>1
-                            [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
-                            y = y - y1;
-                            dy{i} = dy1;
-                        else
-                            y = y - obj.meanz{i}.forward(x,obj.coeffs{i});
-                        end
+
+                        y = y - obj.meanz{i}.forward(x,obj.coeffs{i});
 
                     case '*'
-                        if nargout>1
-                            [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
-                            dy{i} = y.*dy1;
-                            y = y.*y1;
-                        else
-                            y = y.*obj.meanz{i}.forward(x,obj.coeffs{i});
-                        end
+
+                        y = y.*obj.meanz{i}.forward(x,obj.coeffs{i});
 
                      case '/'
-                        if nargout>1
-                            [y1,dy1] = obj.meanz{i}.forward(x,obj.coeffs{i});
-                            
-                            dy{i} = -1*y.*(dy1)./y1.^2;
-
-                            if i>1
-                                for jj = 1:i-1
-                                    dy{jj} = y1.*dy{jj};
-                                end
-                            end
-
-                            y = y./y1;
-                        else
-                            y = y./(obj.meanz{i}.forward(x,obj.coeffs{i}));
-                        end
+                         
+                         y = y./(obj.meanz{i}.forward(x,obj.coeffs{i}));
                         
                 end
             end
-
-            if nargout>1
-                jj = 1;
-                for i = 1:numel(dy)
-                    nn = size(dy{i},2);
-                    dY(:,jj:jj+nn-1) = cell2mat(dy(i));
-                    jj=jj+nn;
-                end
-            end
-
         end
 
         function V = getHPs(obj)

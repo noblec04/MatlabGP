@@ -8,16 +8,12 @@ xx = linspace(0,1,100)';
 yy = f1(xx);
 
 x1 = [0; 1*lhsdesign(5,1);1];
-y1 = f1(x1)+normrnd(0*x1(:,1),0*x1(:,1)+0.1);
+y1 = f1(x1)+normrnd(0*x1(:,1),0*x1(:,1)+0.05);
 
-%a = means.linear(4)*means.sine(1,3,0,1)
-%a = means.sine(1,3,0,1);
-a = means.linear(1)
+a = means.linear(4)*means.sine(1,3,0,1);
 
-%b = (kernels.Matern52(1,0.2) + kernels.EQ(0.2,0.4))*kernels.RQ(1,0.1);
-b = kernels.Matern52(1,2);
-c = kernels.EQ(1,1);
-d = c;
+d = (kernels.Matern52(3,0.2).periodic(1,1) + kernels.EQ(0.2,0.4))*kernels.RQ(2,1,0.1);
+%d = kernels.Matern52(1,0.1);
 d.signn = 0;
 
 
@@ -35,8 +31,6 @@ plot(x1,y1,'+','MarkerSize',12,'LineWidth',3)
 figure
 hold on
 
-utils.plotLineOut(Z1,1,1)
-
 for i = 1:30
     ysamp = Z1.samplePrior(xx);
     plot(xx,ysamp,'LineWidth',0.05,'Color','k')
@@ -46,6 +40,7 @@ tic
 [Z2] = Z1.train();
 toc
 
+%%
 figure
 hold on
 utils.plotLineOut(Z2,1,1)

@@ -101,10 +101,8 @@ classdef NLMFGP
             L = obj.Zd.LOO();
         end
 
-        %%%%% FINISH %%%%%%
-        function [y,dy] = eval_mu(obj,x)
-            
-            if nargout<2
+        function [y] = eval_mu(obj,x)
+
                 nF = numel(obj.GPs);
 
                 Xall = x;
@@ -116,39 +114,10 @@ classdef NLMFGP
 
                 y = obj.Zd.eval_mu(Xall);
 
-            else
-
-                nF = numel(obj.GPs);
-
-                Xall = x;
-
-                for i = 2:nF
-                    Xn = obj.GPs{i}.eval(x);
-                    Xall = [Xall Xn];
-                end
-
-                [y, dy] = obj.Zd.eval_mu(Xall);
-
-                dy = dy(:,1:end-(nF-1));
-            end
-
         end
 
-        function [sig,dsig] = eval_var(obj,x)
+        function [sig] = eval_var(obj,x)
             
-            if nargout<2
-                nF = numel(obj.GPs);
-
-                Xall = x;
-
-                for i = 2:nF
-                    Xn = obj.GPs{i}.eval(x);
-                    Xall = [Xall Xn];
-                end
-
-                sig = obj.Zd.eval_var(Xall);
-
-            else
 
                 nF = numel(obj.GPs);
 
@@ -159,11 +128,13 @@ classdef NLMFGP
                     Xall = [Xall Xn];
                 end
 
-                [sig, dsig] = obj.Zd.eval_var(Xall);
+                sig = obj.Zd.eval_var(Xall);    
+        end
 
-                dsig = dsig(:,1:end-(nF-1));
-            end
+        function y = sample(obj,x)
+            [mu,sig] = obj.eval(x);
 
+            y = normrnd(mu,sqrt(sig));
         end
 
         function y = samplePrior(obj,x)

@@ -57,7 +57,7 @@ classdef GP
             end
         end
         
-        function [y,dy] = eval_mu(obj,x)
+        function [y] = eval_mu(obj,x)
             
             xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
@@ -66,16 +66,9 @@ classdef GP
 
             y = obj.mean.eval(x) + ksf*obj.alpha;
 
-            if nargout>1
-                dksf = obj.kernel.grad(xs,xx);
-                dm = obj.mean.grad(xs);
-
-                dy = dm + (dksf'*obj.alpha)';
-            end
-
         end
 
-        function [sig,dsig] = eval_var(obj,x)
+        function [sig] = eval_var(obj,x)
             
             xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
@@ -84,11 +77,12 @@ classdef GP
 
             sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
 
-            if nargout>1
-                dksf = obj.kernel.grad(xs,xx);
-                dsig = -1*(-2*(ksf*obj.Kinv*dksf'));
-            end
+        end
 
+        function y = sample(obj,x)
+            [mu,sig] = obj.eval(x);
+
+            y = normrnd(mu,sqrt(sig));
         end
 
         function [dy] = eval_grad(obj,x)
@@ -126,7 +120,7 @@ classdef GP
             
         end
 
-        function [obj,dm,dK] = condition(obj,X,Y,lb,ub)
+        function [obj] = condition(obj,X,Y,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
@@ -142,14 +136,10 @@ classdef GP
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             obj.kernel.scale = 1;
+
             [obj.K] = obj.kernel.build(xx,xx);
-            
-            if nargout>1
-                [mm,dm] = obj.mean.eval(obj.X);
-                res = obj.Y - mm;
-            else
-                res = obj.Y - obj.mean.eval(obj.X);
-            end
+
+            res = obj.Y - obj.mean.eval(obj.X);
 
             kkp = pinv(obj.K,0);
 
@@ -157,11 +147,7 @@ classdef GP
 
             obj.kernel.scale = sigp^2;
 
-            if nargout>1
-                [obj.K,dK] = obj.kernel.build(xx,xx);
-            else
-                [obj.K] = obj.kernel.build(xx,xx);
-            end
+            [obj.K] = obj.kernel.build(xx,xx);
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
 
@@ -171,7 +157,7 @@ classdef GP
 
         end
 
-        function [nll,dnLL] = LL(obj,theta,regress,ntm)
+        function [nll] = LL(obj,theta,regress,ntm)
 
             if regress
                 obj.kernel.signn = theta(end);
@@ -180,12 +166,8 @@ classdef GP
             
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
-            
-            if nargout == 2
-                [obj,dm,dK] = obj.condition(obj.X,obj.Y);
-            else
-                [obj] = obj.condition(obj.X,obj.Y);
-            end
+
+            [obj] = obj.condition(obj.X,obj.Y);
 
             detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
 
@@ -198,24 +180,6 @@ classdef GP
             nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(theta,1.1,0.5)));
 
             %nll = nll;
-
-            if nargout==2
-                dnLL = zeros(1,length(theta));
-
-                for i = 1:ntm
-                    dnLL(i) = -2*obj.alpha'*dm(:,i);
-                end
-                n=0;
-                for i = ntm+1:length(theta)
-                    n=n+1;
-                    dnLL(i) = -0.5*sum(sum((obj.alpha*obj.alpha' - obj.Kinv)*squeeze(dK(:,:,n)))) + (3 - 1*theta(n) - 1)/(length(theta)*theta(n)) + 1.4;
-                end
-
-                if regress
-                    dnLL(end+1) = -1*sum(sum(2*sqrt(obj.kernel.signn)*(obj.alpha*obj.alpha' - obj.Kinv)));
-                end
-
-            end
 
         end
 
@@ -234,7 +198,7 @@ classdef GP
 
             detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
 
-            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
+            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.01*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
             loss_nll = -1*loss_nll;
 
@@ -363,11 +327,11 @@ classdef GP
             for i = 1:3
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',100,'OptimalityTolerance',1*10^(-4));
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',1000,'OptimalityTolerance',1*10^(-4));
 
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
 
-                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',20,'tol',1*10^(-4));
+                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',2000,'tol',1*10^(-4));
 
             end
 

@@ -52,7 +52,7 @@ classdef AE
 
             nV = length(V(:));
 
-            V = AutoDiff(V(:));
+            V = autodiff.AutoDiff(V(:));
 
             obj = obj.setHPs(V(:));
 

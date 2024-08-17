@@ -17,7 +17,7 @@ figure
 utils.plotSurf(Z1,1,2)
 
 tic
-[Z2] = Z1.train2();
+[Z2] = Z1.train();
 toc
 
 figure
