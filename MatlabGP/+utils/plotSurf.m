@@ -47,10 +47,13 @@ for i = 1:n
         XX(dim1) = xx1(i);
         XX(dim2) = xx2(j);
         
-        YY(i,j) = kr.eval(XX);
+        Yj = kr.eval([XX;XX]);
+        YY(i,j) = Yj(1);
         
         if in.CI
-            [~,ee(i,j)] = kr.eval(XX);
+            
+            [~,ej] = kr.eval([XX;XX]);
+            ee(i,j) = ej(1);
         end
         
     end

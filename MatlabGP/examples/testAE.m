@@ -3,29 +3,29 @@ clear all
 close all
 clc
 
-xx = lhsdesign(20,1);
-yy = normrnd(forr(xx,0),0*forr(xx,0)+0);
+xx = lhsdesign(100,1);
+yy = normrnd(forr(xx,0),0*forr(xx,0)+1);
 
 yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers1{1} = NN2.FF(3,3);
-layers1{2} = NN2.FF(3,2);
-layers1{3} = NN2.FF(2,1);
-acts1{1} = NN2.SNAKE(1);
-acts1{2} = NN2.SNAKE(1);
+layers1{1} = NN2.FF(3,12);
+layers1{2} = NN2.FF(12,6);
+layers1{3} = NN2.FF(6,2);
+acts1{1} = NN2.SWISH(1);
+acts1{2} = NN2.SWISH(1);
 
 lss = NN2.MAE();
 
 enc = NN2.NN(layers1,acts1,lss);
 
-layers2{1} = NN2.FF(1,2);
-layers2{2} = NN2.FF(2,3);
-layers2{3} = NN2.FF(3,3);
-acts2{1} = NN2.SNAKE(1);
-acts2{2} = NN2.SNAKE(1);
+layers2{1} = NN2.FF(2,6);
+layers2{2} = NN2.FF(6,12);
+layers2{3} = NN2.FF(12,3);
+acts2{1} = NN2.SWISH(1);
+acts2{2} = NN2.SWISH(1);
 
 lss = NN2.MAE();
 

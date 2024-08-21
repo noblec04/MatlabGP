@@ -33,8 +33,8 @@ classdef AE
 
         function V = getHPs(obj)
 
-            V=obj.Encoder.getHPs();
-            V=[V;obj.Decoder.getHPs()];
+            V=obj.Encoder.getHPs()';
+            V=[V;obj.Decoder.getHPs()'];
             
         end
 
@@ -52,7 +52,7 @@ classdef AE
 
             nV = length(V(:));
 
-            V = autodiff.AutoDiff(V(:));
+            V = AutoDiff(V(:));
 
             obj = obj.setHPs(V(:));
 
@@ -80,7 +80,7 @@ classdef AE
             func = @(V) obj.loss(V,x,y);
 
 
-            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',5000,'MaxIterations',2000,'Display','iter');
+            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',2000,'MaxIterations',2000,'Display','iter');
             [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
             %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.001,'gamma',0.001,'iters',3000,'tol',1*10^(-7));
