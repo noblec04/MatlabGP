@@ -22,6 +22,8 @@ classdef KISSGP
     properties
         kernel
         mean
+
+        training = 0;
         
         M
 
@@ -95,7 +97,7 @@ classdef KISSGP
             xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
             yf = (Y - obj.lb_y)./(obj.ub_y - obj.lb_y);
             
-            obj.kernel.scale = std(yf)/2;
+            obj.kernel.scale = std(yf);
 
             obj = obj.BuildKern();
             obj.M = utils.interpgrid(obj.Xg,xf,3);
@@ -104,9 +106,11 @@ classdef KISSGP
 
             res = yf - obj.mean.eval(obj.X);
 
-            [obj.alpha,flag] = utils.conjgrad(ff,res,1*10^(-3),20);
+            [obj.alpha,flag] = utils.conjgrad(ff,res,1*10^(-5),100);
 
-            obj = obj.LOVE();
+            if ~obj.training
+                obj = obj.LOVE();
+            end
 
         end
 
@@ -115,7 +119,7 @@ classdef KISSGP
             v = obj.M*utils.kronmvm(obj.K,ones(N,1)/N ); 
             n = size(obj.M,1); 
             a = 1./obj.kernel.signn.^2;
-            [Q,T] = utils.lanczos_arpack(@(x)obj.M*utils.kronmvm(obj.K,obj.M'*x)+a.*x, v, 50);
+            [Q,T] = utils.lanczos_arpack(@(x)obj.M*utils.kronmvm(obj.K,obj.M'*x)+a.*x, v, min(50,n-1));
 
             obj.R = utils.kronmvm(obj.K,obj.M'*Q)/chol(T); 
             
@@ -128,13 +132,37 @@ classdef KISSGP
             Ms = utils.interpgrid(obj.Xg,xs,3);
 
             mu = obj.mean.eval(xs) + obj.lb_y + (obj.ub_y - obj.lb_y)*Ms*utils.kronmvm(obj.K,obj.M'*obj.alpha);
-
-            if nargin>1
-                ve = Ms*obj.vg;
-
-                sig = max(obj.kernel.scale - ve,0);
+            
+            if nargout>1
+                if~isempty(obj.vg)
+                    ve = Ms*obj.vg;
+                    sig = obj.kernel.signn + max(obj.kernel.scale - ve,0);
+                else
+                    sig = obj.kernel.signn + 0*xs(:,1);
+                end
             end
+        end
 
+        function [mu] = eval_mu(obj,xs)
+
+            Ms = utils.interpgrid(obj.Xg,[xs;xs],3);
+
+            mu = obj.mean.eval([xs;xs]) + obj.lb_y + (obj.ub_y - obj.lb_y)*Ms*utils.kronmvm(obj.K,obj.M'*obj.alpha);
+
+            mu = mu(1:ceil(end/2));%
+        end
+
+        function [sig] = eval_var(obj,xs)
+
+            Ms = utils.interpgrid(obj.Xg,[xs;xs],3);
+
+            if~isempty(obj.vg)
+                ve = Ms*obj.vg;
+                sig = obj.kernel.signn + max(obj.kernel.scale - ve,0);
+                sig = sig(1:ceil(end/2));
+            else
+                sig = 0*xs(:,1);
+            end
         end
 
         function nll = LL(obj,theta,regress)
@@ -151,11 +179,11 @@ classdef KISSGP
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:ntm+ntk));
 
-            obj = obj.condition(obj.X,obj.Y);
+            its = randsample(size(obj.X,1),min(size(obj.X,1),100));
 
-            its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
+            obj = obj.condition(obj.X(its,:),obj.Y(its));
 
-            nll = obj.nLL(obj.X(its,:),obj.Y(its));
+            nll = obj.nLL(obj.X,obj.Y);
             
             nll = -1*nll;
 
@@ -163,38 +191,17 @@ classdef KISSGP
             nll(isinf(nll)) = 0;
         end
 
-        function [loss, dloss] = loss(obj,theta,regress)
+        function nll = nLL(obj,x,y)
 
-            nV = length(theta(:));
-            tm0 = obj.mean.getHPs();
-            ntm = numel(tm0);
-            tk0 = obj.kernel.getHPs();
-            ntk = numel(tk0);
-
-            theta = AutoDiff(theta);
-
-            if regress
-                obj.kernel.signn = theta(ntm+ntk+1);
-            end
-
-            obj.mean = obj.mean.setHPs(theta(1:ntm));
-            obj.kernel = obj.kernel.setHPs(theta(ntm+1:ntm+ntk));
-
-            obj = obj.condition(obj.X,obj.Y);
-
-            its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
-
-            nll = obj.nLL(obj.X(its,:),obj.Y(its));
+            [mu] = obj.eval(x);
             
-            nll = -1*nll;
-
-            loss = getvalue(nll);
-            dloss = getderivs(nll);
-            dloss = reshape(full(dloss),[1 nV]);
+            nll = sum(((y - mu).^2));%./sig);  -log(2*pi*sqrt(abs(sig))) +
 
         end
 
         function [obj,nll] = train(obj,regress)
+
+            obj.training = 1;
 
             if obj.kernel.signn==0||nargin<2
                 regress=1;
@@ -222,15 +229,19 @@ classdef KISSGP
             func = @(x) obj.LL(x,regress);
 
 
-            xxt = tlb + (tub - tlb).*lhsdesign(500*length(tlb),length(tlb));
+            xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
 
             for ii = 1:size(xxt,1)
-                LL(ii) = -1*func(xxt(ii,:));
+                LL(ii) = func(xxt(ii,:));
             end
 
             LL = exp(1 + LL - max(LL));
 
             theta = sum(xxt.*LL')/sum(LL);
+
+            % [~,ii] = max(LL);
+            % 
+            % theta = xxt(ii,:);
 
             nll = sum(LL);
 
@@ -238,6 +249,8 @@ classdef KISSGP
                 obj.kernel.signn = theta(end);
                 theta(end) = [];
             end
+
+            obj.training = 0;
 
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
