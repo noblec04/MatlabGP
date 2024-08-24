@@ -14,7 +14,7 @@ classdef MSE
 
             e = sum((y - yp).^2);
 
-            de(:,1) = -2*(y - yp);
+            de = -2*(y - yp);
 
         end
     end

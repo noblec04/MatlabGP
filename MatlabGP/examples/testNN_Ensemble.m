@@ -26,26 +26,16 @@ end
 %%
 tic
 for i = 1:nE
-    [nnet2{i},~,~,fv{i}] = nnet{i}.train(xx,yy);
+    [nnet2{i}] = nnet{i}.train(xx,yy);
 end
 toc
 
 %%
 for i = 1:nE
-    for j = 1:length(xmesh)
-        %yp1(:,j) = nnet.predict(xmesh(j,:)');
-        yp2(:,j,i) = nnet2{i}.predict(xmesh(j));
-    end
+    yp2(:,:,i) = nnet2{i}.predict(xmesh);
 end
 
 %%
-figure
-hold on
-for i = 1:nE
-    plot(fv{i},'.')
-end
-set(gca,'yscale','log')
-set(gca,'xscale','log')
 
 figure
 plot(xmesh,ymesh)

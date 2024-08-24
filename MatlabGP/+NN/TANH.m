@@ -7,11 +7,9 @@ classdef TANH
 
         end
 
-        function [y,dy] = forward(~,x)
+        function [y] = forward(~,x)
 
             y = tanh(x);
-
-            dy = sech(x).^2;
 
         end
     end

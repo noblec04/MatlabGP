@@ -2,7 +2,7 @@
 clear all
 clc
 
-D = 3;
+D = 2;
 
 lb = -2*ones(1,D);
 ub = 2*ones(1,D);
@@ -14,12 +14,12 @@ x1 = lb + (ub - lb).*lhsdesign(50000,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
 %%
-ma = means.const(0);
+ma = means.linear([0 0]);
 ka = kernels.EQ(1,0.01);
 ka.signn = eps;
 
 %%
-Z = KISSGP(ma,ka,100);
+Z = KISSGP(ma,ka,200);
 
 %%
 tic

@@ -26,31 +26,22 @@ nnet = NN.NN(layers,acts,lss);
 
 %%
 tic
-[nnet2,fval,xv,fv] = nnet.train(xx,yy(:,1));
+[nnet2,fval] = nnet.train(xx,yy(:,1));
 toc
 
 %%
 
-for j = 1:length(xmesh)
-    %yp1(:,j) = nnet.predict(xmesh(j,:)');
-    yp2(:,j) = nnet2.predict(xmesh(j,:)');
-end
+yp2 = nnet2.predict(xmesh);
 
 %%
-figure
-plot(fv,'.')
-set(gca,'yscale','log')
-set(gca,'xscale','log')
 
 figure
-for i = 1:1
-    subplot(1,3,i)
-    plot3(xmesh(:,1),xmesh(:,2),ymesh(:,i),'.')
-    hold on
-    %plot3(xmesh(:,1),xmesh(:,2),yp1(i,:),'.')
-    plot3(xmesh(:,1),xmesh(:,2),yp2(i,:),'.')
-    plot3(xx(:,1),xx(:,2),yy(:,i),'x')
-end
+
+plot3(xmesh(:,1),xmesh(:,2),ymesh(:,i),'.')
+hold on
+plot3(xx(:,1),xx(:,2),yy(:,i),'x')
+
+utils.plotSurf(nnet2,2,1,'CI',0)
 
 %%
 

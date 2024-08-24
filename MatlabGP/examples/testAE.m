@@ -11,27 +11,29 @@ yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers1{1} = NN2.FF(3,12);
-layers1{2} = NN2.FF(12,6);
-layers1{3} = NN2.FF(6,2);
-acts1{1} = NN2.SWISH(1);
-acts1{2} = NN2.SWISH(1);
+layers1{1} = NN.FF(3,12);
+layers1{2} = NN.FF(12,6);
+layers1{3} = NN.FF(6,2);
 
-lss = NN2.MAE();
+acts1{1} = NN.SWISH(1);
+acts1{2} = NN.SWISH(1);
 
-enc = NN2.NN(layers1,acts1,lss);
+lss = NN.MAE();
 
-layers2{1} = NN2.FF(2,6);
-layers2{2} = NN2.FF(6,12);
-layers2{3} = NN2.FF(12,3);
-acts2{1} = NN2.SWISH(1);
-acts2{2} = NN2.SWISH(1);
+enc = NN.NN(layers1,acts1,lss);
 
-lss = NN2.MAE();
+layers2{1} = NN.FF(2,6);
+layers2{2} = NN.FF(6,12);
+layers2{3} = NN.FF(12,3);
 
-dec = NN2.NN(layers2,acts2,lss);
+acts2{1} = NN.SWISH(1);
+acts2{2} = NN.SWISH(1);
 
-AE1 = NN2.AE(enc,dec,lss);
+lss = NN.MAE();
+
+dec = NN.NN(layers2,acts2,lss);
+
+AE1 = NN.AE(enc,dec,lss);
 
 %%
 

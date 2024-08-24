@@ -16,13 +16,13 @@ classdef FF
 
         function [y] = forward(obj,x)
 
-            y = obj.weight*x + obj.biases;
+            y = (obj.weight*x' + obj.biases)';
 
         end
 
         function V = getHPs(obj)
 
-            V = [obj.weight(:);obj.biases];
+            V = [obj.weight(:);obj.biases(:)];
         end
 
         function obj = setHPs(obj,V)

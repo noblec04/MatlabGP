@@ -3,32 +3,38 @@ clear all
 close all
 clc
 
-xx = [0;lhsdesign(10,1);1];
-yy = normrnd(forr(xx,0),0*forr(xx,0)+0.4);
+xx = [0;lhsdesign(20,1);1];
+yy = normrnd(forr(xx,0),0*forr(xx,0));
 
-xmesh = linspace(0,1,100)';
+yc(:,1) = double(yy>0);
+yc(:,2) = double(yy<=0);
+
+
+xmesh = linspace(0,1,1000)';
 ymesh = forr(xmesh,0);
 
 layers{1} = NN.FF(1,3);
 layers{2} = NN.FF(3,6);
-layers{3} = NN.FF(6,3);
+layers{3} = NN.FF(6,2);
 
-acts{1} = NN.SNAKE(2);
+acts{1} = NN.SNAKE(1);
 acts{2} = NN.SNAKE(1);
 
-lss = NN.MAE();
+lss = NN.CE();
 
 nnet = NN.NN(layers,acts,lss);
 
 %%
 
 tic
-[nnet2,fval] = nnet.train(xx,yy);%,xv,fv
+[nnet2,fval] = nnet.train(xx,yc);%,xv,fv
 toc
 
 %%
 
 yp2 = nnet2.predict(xmesh);
+
+yp3 = exp(yp2)./sum(exp(yp2),2);
 
 
 %%
@@ -38,11 +44,9 @@ yp2 = nnet2.predict(xmesh);
 % set(gca,'xscale','log')
 
 figure
-plot(xmesh,ymesh)
+plot(xmesh,yp3)
 hold on
-%plot(xmesh,yp1)
-plot(xmesh,yp2)
-plot(xx,yy,'x')
+plot(xx,yc,'+')
 
 %%
 
@@ -58,9 +62,6 @@ for i = 1:nx
     else
         y(i,1) = (6*x(i)-2).^2.*sin(12*x(i)-4)+dx;
     end
-
-    y(i,2) = 0.4*(6*x(i)-2).^2.*sin(12*x(i)-4)-x(i)-1;
-    y(i,3) = A*(6*x(i)-2).^2.*sin(12*x(i)-4)+B*(x(i)-0.5)-C;
 end
 
 end

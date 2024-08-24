@@ -9,16 +9,16 @@ yy = normrnd(forr(xx,0),0.01*forr(xx,0).^2+0.5);
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN2.FF(1,3);
-layers{2} = NN2.FF(3,3);
-layers{3} = NN2.FF(3,2);
+layers{1} = NN.FF(1,3);
+layers{2} = NN.FF(3,3);
+layers{3} = NN.FF(3,2);
 
-acts{1} = NN2.SWISH(1);
-acts{2} = NN2.SNAKE(1);
+acts{1} = NN.SWISH(1);
+acts{2} = NN.SNAKE(1);
 
-lss = NN2.NLL();
+lss = NN.NLL();
 
-nnet = NN2.NN(layers,acts,lss);
+nnet = NN.NN(layers,acts,lss);
 
 %%
 

@@ -130,7 +130,6 @@ for jj = 1:60
     if RMAEMF(jj)<0.05
         break
     end
-
 end
 
 

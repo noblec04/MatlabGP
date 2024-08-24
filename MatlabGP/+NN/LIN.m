@@ -8,11 +8,9 @@ classdef LIN
         function obj = LIN()
         end
 
-        function [y,dy] = forward(~,x)
+        function [y] = forward(~,x)
 
             y = x;
-
-            dy = 1;
 
         end
     end

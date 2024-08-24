@@ -7,11 +7,9 @@ classdef RELU
 
         end
 
-        function [y,dy] = forward(~,x)
+        function [y] = forward(~,x)
 
             y = 0.5*(x + abs(x));
-
-            dy = (sign(x)+1)/2;
 
         end
     end

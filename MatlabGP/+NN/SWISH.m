@@ -10,11 +10,9 @@ classdef SWISH
             obj.beta = beta;
         end
 
-        function [y,dy] = forward(obj,x)
+        function [y] = forward(obj,x)
 
             y = x./(1 + exp(-obj.beta*x));
-
-            dy = (exp(obj.beta*x).*(obj.beta*x +exp(obj.beta*x)+1))./(1 + exp(obj.beta*x)).^2;
 
         end
     end
