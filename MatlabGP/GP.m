@@ -52,7 +52,7 @@ classdef GP
             y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
-                kss = obj.kernel.build(xs,xs);
+                kss = obj.kernel.build(xs(1,:),xs(1,:));
                 sig = abs(diag(kss)  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
         end

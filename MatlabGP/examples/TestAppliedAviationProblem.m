@@ -76,7 +76,7 @@ max(abs(yy - Z{1}.eval_mu(xx)))./std(yy)
 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy)
 max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
-C = [50 1];
+C = [100 1];
 
 %%
 for jj = 1:60

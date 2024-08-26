@@ -2,7 +2,7 @@
 clear all
 clc
 
-D = 2;
+D = 3;
 
 lb = -2*ones(1,D);
 ub = 2*ones(1,D);
@@ -29,48 +29,48 @@ y{3} = y3;
 
 %%
 
-layers{1} = NN2.FF(D,6);
-layers{2} = NN2.FF(6,3);
-layers{3} = NN2.FF(3,1);
+layers{1} = NN.FF(D,12);
+layers{2} = NN.FF(12,3);
+layers{3} = NN.FF(3,1);
 
-acts{1} = NN2.SNAKE(2);
-acts{2} = NN2.SWISH(1);
+acts{1} = NN.SNAKE(2);
+acts{2} = NN.SWISH(1);
 
-lss = NN2.MAE();
+lss = NN.MAE();
 
-nnet = NN2.NN(layers,acts,lss);
+nnet = NN.NN(layers,acts,lss);
 
 %%
 
 for i = 1:3
-    NN{i} = nnet.train(x{i},y{i});
+    NNs{i} = nnet.train(x{i},y{i});
 end
 
 %%
 
-layers{1} = NN2.FF(D+2,12);
-layers{2} = NN2.FF(12,6);
-layers{3} = NN2.FF(6,1);
+layers{1} = NN.FF(D+2,12);
+layers{2} = NN.FF(12,12);
+layers{3} = NN.FF(12,1);
 
-acts{1} = NN2.SNAKE(2);
-acts{2} = NN2.SWISH(1);
+acts{1} = NN.SNAKE(2);
+acts{2} = NN.SWISH(1);
 
-lss = NN2.MAE();
+lss = NN.MAE();
 
-nnet2 = NN2.NN(layers,acts,lss);
+nnet2 = NN.NN(layers,acts,lss);
 
-MF = NN2.MFNN(NN,nnet2);
+MF = NN.MFNN(NNs,nnet2);
 
 %%
 
 tic
-MF = MF.train(NN,x,y,lb,ub);
+MF = MF.train(NNs,x,y,lb,ub);
 toc
 
 %%
 
-1 - mean((yy - NN{1}.eval_mu(xx)).^2)./var(yy)
-max(abs(yy - NN{1}.eval_mu(xx)))./std(yy)
+1 - mean((yy - NNs{1}.eval_mu(xx)).^2)./var(yy)
+max(abs(yy - NNs{1}.eval_mu(xx)))./std(yy)
 
 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy)
 max(abs(yy - MF.eval_mu(xx)))./std(yy)
@@ -78,9 +78,9 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 %%
 figure
 hold on
-utils.plotSurf(NN{1},1,2,'color','r','CI',false)
-utils.plotSurf(NN{2},1,2,'color','b','CI',false)
-utils.plotSurf(NN{3},1,2,'color','g','CI',false)
+utils.plotSurf(NNs{1},1,2,'color','r','CI',false)
+utils.plotSurf(NNs{2},1,2,'color','b','CI',false)
+utils.plotSurf(NNs{3},1,2,'color','g','CI',false)
 
 %%
 
@@ -104,10 +104,10 @@ for jj = 1:60
     y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
 
     for i = 1:3
-        NN{i} = NN{i}.train(x{i},y{i});
+        NNs{i} = NNs{i}.train(x{i},y{i});
     end
 
-    MF = MF.train(NN,x,y,lb,ub);
+    MF = MF.train(NNs,x,y,lb,ub);
 
     R2z(jj) = 1 - mean((yy - MF.GPs{1}.eval_mu(xx)).^2)./var(yy);
     RMAEz(jj) = max(abs(yy - MF.GPs{1}.eval_mu(xx)))./std(yy);

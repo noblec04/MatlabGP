@@ -132,15 +132,15 @@ classdef NN
 
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            tx0 = (obj.getHPs())';
+            tx0 = (obj.getHPs());
 
             func = @(V) obj.loss(V,x,y);
 
 
-            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',500,'MaxIterations',2000,'Display','final');
+            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',300,'MaxIterations',300,'Display','final');
             [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
-            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.001,'gamma',0.001,'iters',3000,'tol',1*10^(-7));
+            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',1000,'tol',1*10^(-7));
 
             obj = obj.setHPs(theta(:));
         end

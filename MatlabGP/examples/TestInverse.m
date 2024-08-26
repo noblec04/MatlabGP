@@ -19,7 +19,7 @@ Z = GP(ma,ka);
 Z = Z.condition(x1,y1);
 Z = Z.train();
 
-Ftarget = -3;
+Ftarget = 4;
 
 %%
 
