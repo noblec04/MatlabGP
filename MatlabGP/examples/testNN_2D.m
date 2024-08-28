@@ -26,7 +26,7 @@ nnet = NN.NN(layers,acts,lss);
 
 %%
 tic
-[nnet2,fval] = nnet.train(xx,yy(:,1));
+[nnet2,fval] = nnet2.train(xx,yy(:,1));
 toc
 
 %%
@@ -37,9 +37,9 @@ yp2 = nnet2.predict(xmesh);
 
 figure
 
-plot3(xmesh(:,1),xmesh(:,2),ymesh(:,i),'.')
+plot3(xmesh(:,1),xmesh(:,2),ymesh,'.')
 hold on
-plot3(xx(:,1),xx(:,2),yy(:,i),'x')
+plot3(xx(:,1),xx(:,2),yy,'x')
 
 utils.plotSurf(nnet2,2,1,'CI',0)
 

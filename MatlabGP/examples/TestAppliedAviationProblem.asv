@@ -21,11 +21,11 @@ y{1} = y1;
 y{2} = y2;
 
 %%
-ma = means.linear([1 1 1 1]);
-mb = means.linear([1 1 1]);
+% ma = means.linear([1 1 1 1]);
+% mb = means.linear([1 1 1]);
 
-% ma = means.zero();
-% mb = means.zero();
+ma = means.zero([1 1 1 1]);
+mb = means.zero();
 
 a = kernels.RQ(2,1,[0.1 0.2 0.1 0.3]);%.periodic(1,10);
 b = kernels.RQ(2,1,[0.2 0.2 0.2]);
@@ -154,14 +154,14 @@ for jj = 1:60
     figure(3)
     clf(3)
     hold on
-    plot(C(1)*pc(1:jj,1)+pc(1:jj,2),R2z)
-    plot(C(1)*pc(1:jj,1)+pc(1:jj,2),R2MF)
+    plot(pc(1:jj,1),R2z)
+    plot(pc(1:jj,1),R2MF)
 
     figure(4)
     clf(4)
     hold on
-    plot(C(1)*pc(1:jj,1)+pc(1:jj,2),RMAEz)
-    plot(C(1)*pc(1:jj,1)+pc(1:jj,2),RMAEMF)
+    plot(pc(1:jj,1),RMAEz)
+    plot(pc(1:jj,1),RMAEMF)
 
     drawnow
 
