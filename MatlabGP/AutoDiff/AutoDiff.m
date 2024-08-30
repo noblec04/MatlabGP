@@ -544,10 +544,28 @@ classdef AutoDiff
         end
 
         function x = pinv(x,tol)
+            if nargin==1
+                tol=0;
+            end
             x.values = pinv(x.values,tol);
             M1 = kron(speye(size(x.values, 2)), x.values);
             M2 = kron(x.values', speye(size(x.values, 1)));
             x.derivatives = -M2 * M1 * x.derivatives;
+        end
+
+        function x = chol(x)
+            nx = size(x.values,1);
+            L = chol(x.values);
+            L2 = L;
+            L2(logical(eye(nx))) = diag(L2)/sqrt(2);
+
+            Li = kron(inv(L2),speye(size(x.values, 1)));
+
+            A = (Li*(x.derivatives'*Li')');
+
+            x.values = L;
+            x.derivatives = sparse(A);
+
         end
 
         function z = mldivide(x, y)
