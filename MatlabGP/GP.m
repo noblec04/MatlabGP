@@ -21,6 +21,7 @@ classdef GP
         mean
 
         K
+        L
         Kinv
         alpha
         signn
@@ -53,6 +54,7 @@ classdef GP
 
             if nargout>1
                 kss = obj.kernel.build(xs(1,:),xs(1,:));
+
                 sig = abs(diag(kss)  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
         end
@@ -150,7 +152,7 @@ classdef GP
             [obj.K] = obj.kernel.build(xx,xx);
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
-
+            
             obj.Kinv = pinv(obj.K);
 
             obj.alpha = obj.Kinv*(res);

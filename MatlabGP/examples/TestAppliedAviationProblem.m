@@ -25,8 +25,8 @@ y{2} = y2;
 ma = means.linear([1 1 1 1]);
 mb = means.linear([1 1 1]);
 
-% ma = means.zero();
-% mb = means.zero();
+%ma = means.zero();
+%mb = means.zero();
 
 a = kernels.RQ(2,1,[0.1 0.2 0.1 0.3]);%.periodic(1,10);
 b = kernels.RQ(2,1,[0.2 0.2 0.2]);
@@ -80,13 +80,19 @@ toc
 
 %%
 
-% mc = means.linear(ones(1,3));%*means.sine(1,10,0,1);
-% c = kernels.RQ(2,1,ones(1,3));
-% c.signn = 1*10^(-7);
-% 
-% LOOZ = GP(mc,c);
-% LOOZ = LOOZ.condition(x{1},log(abs(MF.LOO)),lb,ub);
-% LOOZ = LOOZ.train();
+mc = means.linear([1 1 1]);%*means.sine(1,10,0,1);
+c = kernels.RQ(2,1,[1 1 1]);
+c.signn = 0.001;
+
+LOO = GP(mc,c);
+
+LOOZ{1} = LOO.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+LOOZ{1} = LOOZ{1}.train();
+LOOZ{2} = LOO.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+LOOZ{2} = LOOZ{2}.train();
+
+LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
+LOOMF = LOOMF.train();
 
 
 %%
@@ -116,14 +122,17 @@ C = [50 1];
 %%
 for jj = 1:100
     
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
-    %[xn,Rn] = BO.argmax(@BO.UCB,LOOZ);
+    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.UCB,LOOMF);
     %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
-    sign(1) = Z{1}.eval_var(xn)/C(1);
-    sign(2) = Z{2}.eval_var(xn)/C(2);
+    % sign(1) = Z{1}.eval_var(xn)/C(1);
+    % sign(2) = Z{2}.eval_var(xn)/C(2);
 
-    [~,in] = max(sign);
+    siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
+    siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
+
+    [~,in] = max(siggn);
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn);
@@ -144,7 +153,10 @@ for jj = 1:100
     MF.GPs = Z;
     MF = MF.condition();
 
-    %LOOZ = LOOZ.condition(x{1},log(abs(MF.LOO)),lb,ub);
+    LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+    LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+
+    LOOMF = LOOMF.condition(x{1},log(abs(MF.LOO)),lb,ub);
 
     pc(jj,1) = size(x{1},1);
     pc(jj,2) = size(x{2},1);

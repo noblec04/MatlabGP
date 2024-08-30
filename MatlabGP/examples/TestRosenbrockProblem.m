@@ -35,7 +35,7 @@ mb = means.linear(ones(1,D));
 
 a = kernels.RQ(2,1,ones(1,D+nF-1));
 b = kernels.RQ(2,1,ones(1,D));
-a.signn = eps;
+a.signn = 1*10^(-7);
 b.signn = 1*10^(-7);
 
 %%
@@ -56,7 +56,7 @@ toc
 
 mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
 c = kernels.RQ(2,1,ones(1,D));
-c.signn = 0.001;
+c.signn = 1;
 
 LOO = GP(mc,c);
 
@@ -67,8 +67,8 @@ LOOZ{2} = LOOZ{2}.train();
 LOOZ{3} = LOO.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
 LOOZ{3} = LOOZ{3}.train();
 
-LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
-LOOMF = LOOMF.train();
+% LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
+% LOOMF = LOOMF.train();
 
 
 %%
@@ -96,7 +96,7 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 C = [50 20 1];%20
 
-for jj = 1:60
+for jj = 1:100
     
     %[xn,Rn] = BO.argmax(@BO.UCB,LOOMF);
     %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
