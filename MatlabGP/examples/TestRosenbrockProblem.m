@@ -35,8 +35,8 @@ mb = means.linear(ones(1,D));
 
 a = kernels.RQ(2,1,ones(1,D+nF-1));
 b = kernels.RQ(2,1,ones(1,D));
-a.signn = 1*10^(-7);
-b.signn = 1*10^(-7);
+a.signn = eps;
+b.signn = eps;
 
 %%
 tic
@@ -54,19 +54,23 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
-mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
-c = kernels.RQ(2,1,ones(1,D));
-c.signn = 1;
+dec = BO.WTS(20,3);
 
-LOO = GP(mc,c);
+%%
 
-LOOZ{1} = LOO.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
-LOOZ{1} = LOOZ{1}.train();
-LOOZ{2} = LOO.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
-LOOZ{2} = LOOZ{2}.train();
-LOOZ{3} = LOO.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
-LOOZ{3} = LOOZ{3}.train();
-
+% mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
+% c = kernels.RQ(2,1,ones(1,D));
+% c.signn = 1;
+% 
+% LOO = GP(mc,c);
+% 
+% LOOZ{1} = LOO.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+% LOOZ{1} = LOOZ{1}.train();
+% LOOZ{2} = LOO.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+% LOOZ{2} = LOOZ{2}.train();
+% LOOZ{3} = LOO.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
+% LOOZ{3} = LOOZ{3}.train();
+% 
 % LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
 % LOOMF = LOOMF.train();
 
@@ -94,23 +98,25 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
 
-C = [50 20 1];%20
+C = [50 30 1];%20
 
-for jj = 1:100
-    
-    %[xn,Rn] = BO.argmax(@BO.UCB,LOOMF);
-    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
-    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+for jj = 1:200
+   
+    %[xn,Rn] = BO.argmaxGrid(@BO.UCB,LOOMF);
+    [xn,Rn] = BO.argmaxGrid(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmaxGrid(@BO.maxVAR,MF);
 
-    siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
-    siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
-    siggn(3) = exp((LOOZ{3}.eval(xn)))/(C(3));
+    % siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
+    % siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
+    % siggn(3) = exp((LOOZ{3}.eval(xn)))/(C(3));
 
     % siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
     % siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
-    %siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
+    % siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
+    % 
+    % [~,in] = max(siggn);
 
-    [~,in] = max(siggn);
+    in = dec.action();
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn);
@@ -135,14 +141,22 @@ for jj = 1:100
         Z{ii} = Z{ii}.condition(x{ii},y{ii},lb,ub);
     end
 
+    yh1 = MF.eval(xn);
+
     MF.GPs = Z;
     MF = MF.condition();
 
-    LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
-    LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
-    LOOZ{3} = LOOZ{3}.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
+    yh2 = MF.eval(xn);
 
-    %LOOMF = LOOMF.condition(x{1},log(abs(MF.LOO)),lb,ub);
+    Ri = abs(yh2 - yh1)/C(in);
+
+    dec = dec.addReward(in,Ri);
+
+    % LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+    % LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+    % LOOZ{3} = LOOZ{3}.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
+     
+    % LOOMF = LOOMF.condition(x{1},log(abs(MF.LOO)),lb,ub);
 
     R2z(jj) = 1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy);
     RMAEz(jj) = max(abs(yy - Z{1}.eval_mu(xx)))./std(yy);
