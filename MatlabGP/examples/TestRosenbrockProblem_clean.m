@@ -80,7 +80,7 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
 
-C = [50 30 1];%20
+C = [100 30 1];%20
 
 for jj = 1:200
    
@@ -94,7 +94,7 @@ for jj = 1:200
 
     nu = exp(nu);
 
-    [~,in] = max(sqrt(siggn.*nu));
+    [~,in] = max(0.5*(siggn+nu));
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn);
