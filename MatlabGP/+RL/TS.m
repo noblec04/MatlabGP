@@ -35,7 +35,7 @@ classdef TS
                 S = sum(obj.rewards{i});
                 T = sum(double(obj.rewards{i}~=0));
 
-                sig = 1./(1/10 + T);
+                sig = 1./(1/100 + T);
                 mu = sig*S;
 
                 nu(i) = normrnd(mu,sqrt(sig));
@@ -56,7 +56,7 @@ classdef TS
                 S = sum(obj.rewards{i});
                 T = sum(double(obj.rewards{i}~=0));
 
-                sig = 1./(1/10 + T);
+                sig = 1./(1/100 + T);
                 mu = sig*S;
 
                 Y = normpdf(X + mu,mu,sig);
@@ -73,7 +73,7 @@ classdef TS
                 S = sum(obj.rewards{i});
                 T = sum(double(obj.rewards{i}~=0));
 
-                sig = 1./(1/10 + T);
+                sig = 1./(1/100 + T);
                 mu = sig*S;
 
                 lik(i) = normpdf(R(i),mu,sig);
