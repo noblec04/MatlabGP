@@ -1,5 +1,5 @@
 classdef WTS
-    %Windowed Thompson Sampling
+    %Windowed Thompson Sampling - beta dist
     % [1] Trovo, Paladino, Restelli, & Gatti 2020
     properties
         rewards
@@ -28,7 +28,11 @@ classdef WTS
             obj.rewards{arm}(end)=reward;
         end
 
-        function arm = action(obj,prior)
+        function arm = action(obj,sig)
+
+            if nargin<2
+                sig = 0*[1:numel(obj.rewards)] + 1;
+            end
 
             
             for i = 1:numel(obj.rewards)
@@ -36,7 +40,7 @@ classdef WTS
                 S = sum(obj.rewards{i});
                 T = sum(double(obj.rewards{i}>0));
 
-                nu(i) = betarnd(S+prior(i),T-S+prior(i));
+                nu(i) = betarnd(S+1,T-S+1)*sig(i);
             end
 
             [~,arm] = max(nu);

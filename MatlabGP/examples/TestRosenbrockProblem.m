@@ -54,7 +54,7 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
-dec = BO.WTS(20,3);
+dec = RL.TS(20,3);
 
 %%
 
@@ -103,20 +103,34 @@ C = [50 30 1];%20
 for jj = 1:200
    
     %[xn,Rn] = BO.argmaxGrid(@BO.UCB,LOOMF);
-    [xn,Rn] = BO.argmaxGrid(@BO.MFSFDelta,MF);
-    %[xn,Rn] = BO.argmaxGrid(@BO.maxVAR,MF);
+    %[xn,Rn] = BO.argmaxGrid(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
     % siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
     % siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
     % siggn(3) = exp((LOOZ{3}.eval(xn)))/(C(3));
 
-    % siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
-    % siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
-    % siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
-    % 
-    % [~,in] = max(siggn);
+    %siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
+    %siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
+    %siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
 
-    in = dec.action();
+    siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
+    siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
+    siggn(3) = abs(MF.expectedReward(xn,3))/(C(3));
+     
+    [~,nu] = dec.action();
+
+    nu = exp(nu);
+
+    [~,in] = max(sqrt(siggn.*nu));
+
+
+    % switch mod(jj,5)==0
+    %     case 0
+    %         [~,in] = max(siggn);
+    %     case 1
+    %         in = dec.action();
+    % end
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn);
@@ -125,16 +139,18 @@ for jj = 1:200
         end
     end
 
-    if in<=2
+    if in==2 || in==1
         [x{2},flag] = utils.catunique(x{2},xn);
         if flag
             y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
         end
     end
 
-    [x{3},flag] = utils.catunique(x{3},xn);
-    if flag
-        y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
+    if in==3 || in==1
+        [x{3},flag] = utils.catunique(x{3},xn);
+        if flag
+            y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
+        end
     end
 
     for ii = 1:nF
@@ -148,9 +164,10 @@ for jj = 1:200
 
     yh2 = MF.eval(xn);
 
-    Ri = abs(yh2 - yh1)/C(in);
+    Ri(jj) = abs(yh2 - yh1)/C(in);
+    Rie(jj) = siggn(in);
 
-    dec = dec.addReward(in,Ri);
+    dec = dec.addReward(in,Ri(jj));
 
     % LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
     % LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
@@ -177,6 +194,12 @@ for jj = 1:200
     hold on
     plot(cost,RMAEz)
     plot(cost,RMAEMF)
+
+    figure(5)
+    clf(5)
+    hold on
+    plot(cost,Rie)
+    plot(cost,Ri)
 
     drawnow
 

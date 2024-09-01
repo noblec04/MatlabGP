@@ -145,11 +145,7 @@ classdef NLMFGP
 
         end
 
-        function [R] = expectedReward(obj,x,f)
-
-            [mus,sigs] = obj.eval(x);
-
-            nF = numel(obj.GPs);
+        function [mu,sig] = expectedReward(obj,x,f)
 
             for i = 2:nF
                 if i==f
@@ -169,13 +165,10 @@ classdef NLMFGP
                     Xall = [Xall Xn];
                 end
 
-                [mu1,sig1] = obj.GPs{1}.eval(x);
-                obj.Zd = obj.Zd.condition(Xall,[obj.GPs{1}.Y;(mu1+2*sqrt(sig1))]);
+                obj.Zd = obj.Zd.condition(Xall,[obj.GPs{1}.Y);
             end
 
             [mu,sig] = obj.fantasy(x,y);
-
-            R = (mus-mu).^2 + sig + sigs;
 
         end
 

@@ -53,9 +53,7 @@ classdef GP
             y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
-                kss = obj.kernel.build(xs(1,:),xs(1,:));
-
-                sig = abs(diag(kss)  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
+                sig = abs(obj.kernel.scale  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
         end
         
@@ -139,13 +137,15 @@ classdef GP
 
             obj.kernel.scale = 1;
 
-            [obj.K] = obj.kernel.build(xx,xx);
+            %[obj.K] = obj.kernel.build(xx,xx);
 
             res = obj.Y - obj.mean.eval(obj.X);
 
-            kkp = pinv(obj.K);
+            %kkp = pinv(obj.K);
 
-            sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
+            %sigp = sqrt(abs(res'*kkp*res./(size(obj.Y,1))));
+
+            sigp = std(obj.Y);
 
             obj.kernel.scale = sigp^2;
 

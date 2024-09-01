@@ -56,24 +56,6 @@ toc
 
 dec = RL.TS(20,3);
 
-%%
-
-% mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
-% c = kernels.RQ(2,1,ones(1,D));
-% c.signn = 1;
-% 
-% LOO = GP(mc,c);
-% 
-% LOOZ{1} = LOO.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
-% LOOZ{1} = LOOZ{1}.train();
-% LOOZ{2} = LOO.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
-% LOOZ{2} = LOOZ{2}.train();
-% LOOZ{3} = LOO.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
-% LOOZ{3} = LOOZ{3}.train();
-% 
-% LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
-% LOOMF = LOOMF.train();
-
 
 %%
 figure
@@ -102,27 +84,17 @@ C = [50 30 1];%20
 
 for jj = 1:200
    
-    %[xn,Rn] = BO.argmaxGrid(@BO.UCB,LOOMF);
-    [xn,Rn] = BO.argmaxGrid(@BO.MFSFDelta,MF);
-    %[xn,Rn] = BO.argmaxGrid(@BO.maxVAR,MF);
-
-    % siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
-    % siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
-    % siggn(3) = exp((LOOZ{3}.eval(xn)))/(C(3));
-
-    %siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
-    %siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
-    %siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
+    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
 
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
     siggn(3) = abs(MF.expectedReward(xn,3))/(C(3));
      
-    switch mod(jj,5)==0
-        case 0
-            [~,in] = max(siggn);
+    [~,nu] = dec.action();
 
-    %in = dec.action();
+    nu = exp(nu);
+
+    [~,in] = max(sqrt(siggn.*nu));
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn);
@@ -161,19 +133,13 @@ for jj = 1:200
 
     dec = dec.addReward(in,Ri(jj));
 
-    % LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
-    % LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
-    % LOOZ{3} = LOOZ{3}.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
-     
-    % LOOMF = LOOMF.condition(x{1},log(abs(MF.LOO)),lb,ub);
-
     R2z(jj) = 1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy);
     RMAEz(jj) = max(abs(yy - Z{1}.eval_mu(xx)))./std(yy);
 
     R2MF(jj) = 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy);
     RMAEMF(jj) = max(abs(yy - MF.eval_mu(xx)))./std(yy);
 
-    cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1);%+C(3)*size(x{3},1);
+    cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1)+C(3)*size(x{3},1);
 
     figure(3)
     clf(3)
@@ -195,7 +161,7 @@ for jj = 1:200
 
     drawnow
 
-    if RMAEMF(jj)<0.05
+    if RMAEMF(jj)<0.1
         break
     end
 end
@@ -203,14 +169,14 @@ end
 
 %%
 
-% xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
-% yi = testFuncs.Rosenbrock(xn,1);
-% 
-% Zi = GP(mb,b);
-% Zi = Zi.condition(xi,yi,lb,ub);
-% Zi = Zi.train();
-% 
-% %%
-% 
-% 1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
-% max(abs(yy - Zi.eval_mu(xx)))./std(yy)
+xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
+yi = testFuncs.Rosenbrock(xi,1);
+
+Zi = GP(mb,b);
+Zi = Zi.condition(xi,yi,lb,ub);
+Zi = Zi.train();
+
+%%
+
+1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
+max(abs(yy - Zi.eval_mu(xx)))./std(yy)
