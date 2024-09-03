@@ -54,7 +54,7 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
-dec = RL.TS(20,3);
+dec = RL.TS(30,3);
 
 
 %%
@@ -80,7 +80,7 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
 
-C = [100 30 1];%20
+C = [50 30 1];%20
 
 for jj = 1:200
    
@@ -94,24 +94,24 @@ for jj = 1:200
 
     nu = exp(nu);
 
-    [~,in] = max(0.5*(siggn+nu));
+    [~,in] = max(sqrt(siggn.*nu));
 
     if in==1
-        [x{1},flag] = utils.catunique(x{1},xn);
+        [x{1},flag] = utils.catunique(x{1},xn,1e-4);
         if flag
             y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
         end
     end
 
     if in==2 || in==1
-        [x{2},flag] = utils.catunique(x{2},xn);
+        [x{2},flag] = utils.catunique(x{2},xn,1e-4);
         if flag
             y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
         end
     end
 
     if in==3 || in==1
-        [x{3},flag] = utils.catunique(x{3},xn);
+        [x{3},flag] = utils.catunique(x{3},xn,1e-4);
         if flag
             y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
         end
@@ -158,6 +158,11 @@ for jj = 1:200
     hold on
     plot(cost,Rie)
     plot(cost,Ri)
+
+    figure(6)
+    clf(6)
+    hold on
+    dec.plotDists
 
     drawnow
 

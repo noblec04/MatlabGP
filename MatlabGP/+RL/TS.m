@@ -25,7 +25,7 @@ classdef TS
                 obj.rewards{i}(end+1)=0;
             end
 
-            obj.rewards{arm}(end)=log(reward);
+            obj.rewards{arm}(end)=log(reward+eps);
         end
 
         function [arm,nu] = action(obj)
@@ -49,8 +49,6 @@ classdef TS
 
             X = -10:0.01:10;
 
-            figure
-            hold on
             for i = 1:numel(obj.rewards)
 
                 S = sum(obj.rewards{i});

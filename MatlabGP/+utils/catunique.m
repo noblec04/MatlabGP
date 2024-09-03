@@ -1,6 +1,10 @@
-function [x,flag] = catunique(x,xn)
+function [x,flag] = catunique(x,xn,tol)
 
-reps = ismembertol(xn,x,1e-6,'ByRows',true);
+if nargin<3
+    tol = 1e-6;
+end
+
+reps = ismembertol(xn,x,tol,'ByRows',true);
 
 flag = ~reps;
 
