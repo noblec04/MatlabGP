@@ -14,14 +14,14 @@ q.signn = 0.001;
 %%
 f1 = @(x) (6*x(:,1)-2).^2.*sin(12*x(:,2)-4);%.*sin(24*x-1);
 
-x1 = lhsdesign(20,2);
+x1 = lhsdesign(50,2);
 y1 = f1(x1)+normrnd(0*x1(:,1),0*x1(:,1));
 
 %%
-a = means.const(0);
+a = means.const(0)+means.linear([2 2]);
 
-q = kernels.EQ_matrix(1,[2 0 6]);%.periodic(2,5);
-
+q = kernels.EQ_matrix(1,[3 1 3]);%.periodic(2,5);
+%q = kernels.EQ(1,[2 6]);%.periodic(2,5);
 q.signn = eps;
 
 Z = GP(a,q);
@@ -47,3 +47,5 @@ view(20,20)
 [x,R] = BO.argmax(@BO.maxGrad,Z2)
 
 plot(x(1),x(2),'x','MarkerSize',18,'LineWidth',3)
+
+plot3(x1(:,1),x1(:,2),y1,'+','MarkerSize',18)

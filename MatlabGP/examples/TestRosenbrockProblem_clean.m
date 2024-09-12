@@ -3,7 +3,7 @@ clear all
 close all
 clc
 
-D = 3;
+D = 2;
 nF = 3;
 
 lb = -2*ones(1,D);
@@ -54,7 +54,7 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
-dec = RL.TS(30,3);
+dec = RL.TS(10,3);
 
 
 %%

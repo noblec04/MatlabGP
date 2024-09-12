@@ -4,8 +4,21 @@ flexible GP model with user friendly kernel construction inspired by STHENO.
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 +kernels
+  - CEQ 
+  - DECAY
+  - EPAN
   - EQ - squared exponential
+  - EQ_matrix - squared exponential with off diagonal lengthscale terms
+  - GE
+  - JumpRELU
+  - RELU
+  - TANH
+  - WN - white noise
+  - LOG
+  - LPEQ
   - RQ - rational quadratic
+  - Matern12
+  - Matern32
   - Matern52
   - Lin - Linear
   - GE - Gaussian Envelope
@@ -16,6 +29,42 @@ flexible GP model with user friendly kernel construction inspired by STHENO.
   - sine
   - const
 
++BO
+  - argmax
+  - argmaxGrid
+  - argmin
+  - batchopt
+  - EI
+  - FUNBO
+  - LCB
+  - maxGrad
+  - maxMU
+  - maxVAR
+  - MFSFDelta
+  - minMU
+  - opt
+  - UCB
+
++NN
+  - AE
+  - BFF
+  - C2
+  - CE
+  - FF
+  - LIN
+  - MAE
+  - MFNN
+  - MSE
+  - NLL
+  - NN
+  - RELU
+  - reshape
+  - SNAKE
+  - SWISH
+  - TANH
+
+
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 GP - Exact GP with gaussian likelihood
@@ -24,18 +73,14 @@ VGP - Variational GP with gaussian likelihood
 
 MFGP - An AR(1) multi-fidelity GP using Le Gratiet simplification (nF Cov matrices rather than 1 large Cov matrix)
 
+NLMFGP - An AR(N) non-linear GP
+
+NN - Neural Network with a number of different layers, architectures and loss functions, all powered by AutoDiff. 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Means can be added or multiplied together or divided. Kernels can be added or multiplied.
 
-GP and MFGP models find hyperparameters via the mean of the posterior.
-
-VGP finds the hyperparameters as MAP point values. This uses the BADS (bayesian adaptive direct search) package.
-
---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-WIP:
- -Analytical gradients for all hyperparameters. All HPs will be found using VSGD (variational stochastic gradient decent) if number of HPs is large.
+GP models find hyperparameters via the mean of the posterior.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 Example:
@@ -68,34 +113,21 @@ Z = GP(a,b);
 ```matlab:Code
 Z1 = Z.condition(x1,y1);
 
-[ys,sig] = Z1.eval(xx);
-
-figure(2)
-clf(2)
-plot(xx,ys)
+figure
+utils.plotLineOut(Z1,1,1)
 hold on
-plot(xx,ys+2*sqrt(sig),'--')
-plot(xx,ys-2*sqrt(sig),'--')
 plot(xx,yy,'-.')
-plot(x1,y1,'+')
+plot(x1,y1,'+','MarkerSize',12,'LineWidth',3)
 ```
 
-![Untrained Predictive Distribution](MatlabGP/docs/TestGPClass_images/figure_0.png)
-
 ```matlab:Code
-figure(4)
-plot(xx,ys)
-hold on
-plot(xx,ys+2*sqrt(sig),'--')
-plot(xx,ys-2*sqrt(sig),'--')
 
 for i = 1:30
     ysamp = Z1.samplePosterior(xx);
     plot(xx,ysamp,'LineWidth',0.05,'Color','k')
 end
-```
 
-![Sampled untrained Posterior](MatlabGP/docs/TestGPClass_images/figure_1.png)
+```
 
 ```matlab:Code
 tic
@@ -108,16 +140,22 @@ Elapsed time is 1.141292 seconds.
 ```
 
 ```matlab:Code
-[ys,sig] = Z2.eval(xx);
-
-figure(3)
-clf(3)
-plot(xx,ys)
+figure
 hold on
-plot(xx,ys+2*sqrt(sig),'--')
-plot(xx,ys-2*sqrt(sig),'--')
+utils.plotLineOut(Z2,1,1)
 plot(xx,yy,'-.')
-plot(x1,y1,'+')
+plot(x1,y1,'+','MarkerSize',12,'LineWidth',3)
 ```
 
-![Trained GP](MatlabGP/docs/TestGPClass_images/figure_2.png)
+```matlab:Code
+figure
+hold on
+tic
+for i = 1:5
+    [x{i},R{i}] = BO.argmax(@BO.maxVAR,Z2);
+    plot(x{i},R{i},'x','MarkerSize',18,'LineWidth',4)
+end
+xlim([0 1])
+toc
+
+```

@@ -25,3 +25,24 @@ for j = 1:10
         Rend(i,j) = RMAEMF{i,j}(end);
     end
 end
+
+%%
+
+figure
+hold on
+
+
+for j = 1:10
+    for i = 1:size(XX,1)
+        switch XX(i,1)
+            case 10
+                aaa = 'b';
+            case 30
+                aaa = 'k';
+            case 100
+                aaa = 'g';
+        end
+
+        plot(cost{i,j}/min(cost{i,j}),RMAEMF{i,j}/(RMAEMF{i,j}(1)),aaa)
+    end
+end

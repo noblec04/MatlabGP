@@ -4,17 +4,19 @@ close all
 clc
 
 xx = [0;lhsdesign(300,1);1];
-yy = normrnd(forr(xx,0),0.1*abs(forr(xx,0))+0.5);
+yy = normrnd(forr(xx,0),0.02*(forr(xx,0).^2)+0.05);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FF(1,12);
-layers{2} = NN.FF(12,6);
-layers{3} = NN.FF(6,2);
+layers{1} = NN.FF(1,3);
+layers{2} = NN.FF(3,3);
+layers{3} = NN.FF(3,6);
+layers{4} = NN.FF(6,2);
 
-acts{1} = NN.SWISH(0.8);
+acts{1} = NN.SWISH(1.1);
 acts{2} = NN.SWISH(2);
+acts{3} = NN.SWISH(3);
 
 lss = NN.NLL();
 

@@ -345,10 +345,10 @@ classdef VGP
 
             func = @(x) obj.loss(x,regress);
 
-            for i = 1:3
+            for i = 1:1
                 %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.01,'lb',tlb,'ub',tub,'gamma',0.5,'iters',200,'tol',1*10^(-5));
+                [theta{i},val(i)] = VSGD(func,tx0,'lr',0.1,'lb',tlb,'ub',tub,'gamma',0.05,'iters',20,'tol',1*10^(-5));
 
             end
 
