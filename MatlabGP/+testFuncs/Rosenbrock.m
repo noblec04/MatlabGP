@@ -11,7 +11,7 @@ switch i
         	sum = sum + new;
         end
 
-        y = sum/7210;
+        y = sum;%/7210;
     case 2
         d = size(x,2);
         sum = 0;
@@ -23,10 +23,10 @@ switch i
         	sum = sum + new+ new2;
         end
 
-        y = sum/7210;
+        y = sum;%/7210;
 
     case 3
-        y1 = testFuncs.Rosenbrock(x,1)*7210;
+        y1 = testFuncs.Rosenbrock(x,1);%*7210;
 
         d = size(x,2);
         sum = 0;
@@ -41,7 +41,7 @@ switch i
         	sum2 = sum2 + new2;
         end
 
-        y = (1/7210)*(y1 - 4 - sum)./(10 + sum2);
+        y = (y1 - 4 - sum)./(10 + sum2);%(1/7210)*
 end
 
 

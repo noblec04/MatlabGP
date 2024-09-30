@@ -159,7 +159,7 @@ end
 
 %%
 
-xi = lb + (ub - lb).*lhsdesign(size(x{1},1),3);
+xi = lb + (ub - lb).*lhsdesign(ceil(cost(end)/C(1)),3);
 yi = testFuncs.StressedPlate(xi,1);
 
 Zi = GP(mb,b);

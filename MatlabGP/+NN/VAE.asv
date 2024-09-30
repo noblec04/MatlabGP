@@ -1,4 +1,4 @@
-classdef AE
+classdef VAE
 
     properties
         Encoder
@@ -11,7 +11,7 @@ classdef AE
 
     methods
 
-        function obj = AE(Encoder,Decoder,loss)
+        function obj = VAE(Encoder,Decoder,loss)
             obj.Encoder = Encoder;
             obj.Decoder = Decoder;
             obj.lossfunc = loss;
@@ -20,8 +20,15 @@ classdef AE
         function [y,z,obj] = forward(obj,x)
 
             [z] = obj.Encoder.forward(x);
+            [z] = obj.sampleLatent(z);
             [y] = obj.Decoder.forward(z);
 
+
+        end
+
+        function z = sampleLatent(obj,z)
+
+            
 
         end
 

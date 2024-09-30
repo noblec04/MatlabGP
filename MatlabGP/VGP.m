@@ -153,14 +153,25 @@ classdef VGP
 
         end
 
-        function [dy] = newXuDiff(obj,x)
+        function [x] = newXuDiff(obj)%,x)
 
-            obj2 = obj.addInducingPoints(x);
+            %obj2 = obj.addInducingPoints(x);
+
+            replicates = ismembertol((obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x),obj.Xu,1e-4,'ByRows',true);
+
+            obj.X(replicates,:)=[];
+            obj.Y(replicates)=[];
 
             Y1 = obj.eval(obj.X);
-            Y2 = obj2.eval(obj.X);
+            %Y2 = obj2.eval(obj.X);
 
-            dy = -1*abs(sum(Y2-Y1));
+            %dy = -1*sum(abs(Y2-Y1));
+
+            dy = sum(abs(obj.Y-Y1));
+
+            [~,imax] = max(dy);
+
+            x = (obj.X(imax,:) - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
         end
 

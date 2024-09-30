@@ -1,4 +1,4 @@
-classdef AE
+classdef VAE
 
     properties
         Encoder
@@ -11,17 +11,24 @@ classdef AE
 
     methods
 
-        function obj = AE(Encoder,Decoder,loss)
+        function obj = VAE(Encoder,Decoder,loss)
             obj.Encoder = Encoder;
             obj.Decoder = Decoder;
             obj.lossfunc = loss;
         end
 
-        function [y,z,obj] = forward(obj,x)
+        function [y,zin,obj] = forward(obj,x)
 
-            [z] = obj.Encoder.forward(x);
-            [y] = obj.Decoder.forward(z);
+            [zin] = obj.Encoder.forward(x);
+            [zout] = obj.sampleLatent(zin);
+            [y] = obj.Decoder.forward(zout);
 
+        end
+
+        function z = sampleLatent(~,z)
+
+            nz = size(z,2)/2;
+            z = z(:,1:nz) + exp(z(:,nz+1:2*nz)).*normrnd(0,0*[1:nz]+1);
 
         end
 
@@ -56,9 +63,9 @@ classdef AE
 
             obj = obj.setHPs(V(:));
 
-            [yp] = obj.forward(x);
+            [yp,zp] = obj.forward(x);
 
-            [eout] = obj.lossfunc.forward(y,yp);
+            [eout] = obj.lossfunc.forward(y,yp,zp);
 
             e1 = sum(eout,2);
 
@@ -68,7 +75,7 @@ classdef AE
 
         end
 
-        function [obj,fval] = train(obj,x,y)%,xv,fv
+        function [obj,fval,xv,fv] = train(obj,x,y)%,xv,fv
 
             obj.lb_x = min(x);
             obj.ub_x = max(x);
@@ -80,10 +87,10 @@ classdef AE
             func = @(V) obj.loss(V,x,y);
 
 
-            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',2000,'MaxIterations',2000,'Display','iter');
-            [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
+            %opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',2000,'MaxIterations',2000,'Display','iter');
+            %[theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
-            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.001,'gamma',0.001,'iters',3000,'tol',1*10^(-7));
+            [theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.1,'gamma',100,'iters',3000,'tol',1*10^(-7));
 
             obj = obj.setHPs(theta(:));
         end

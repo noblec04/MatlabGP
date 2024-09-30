@@ -1,46 +1,35 @@
 %{
-    Gaussian Process
+    Regression Neural Network
     
-    An exact Gaussian Process with Gaussian Likelihood.
-
-    A mean and kernel function can be created from which the GP can be
-    generated.
-
-    The GP can then be conditioned on training data.
-
-    The GP can then be trained to optimize the HPs of the mean and kernel
-    by finding the mean of the posterior distribution over parameters, or
-    by finding the MAP estimate if the number of HPs is large.
+    
 
 %}
 
-classdef GP
+classdef NNreg
     
     properties
-        kernel
-        mean
-
-        K
-        L
-        Kinv
-        alpha
-        signn
-
-        X
-        Y
-
-        lb_x=0;
-        ub_x=1;
+        NN
+        layers
+        act
+        lss
     end
 
     methods
 
-        function obj = GP(mean,kernel)
-            if isempty(mean)
-                mean = means.zero;
+        function obj = NNreg(in,layers,out,act,loss)
+            
+            obj.layers{1} = NN.FF(in,layers(1));
+
+            for i = 2:size(layers)
+                obj.act{i-1} = act;
+                obj.layers{i} = NN.FF(layers(i-1),layers(i));
             end
-            obj.mean = mean;
-            obj.kernel = kernel;
+
+            obj.act{i} = act;
+            obj.layers{i+1} = NN.FF(layers(i),out);
+
+            obj.NN = NN.NN(obj.layers,obj.act,loss);
+
         end
 
         function [y,sig] = eval(obj,x)

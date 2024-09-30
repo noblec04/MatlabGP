@@ -1,9 +1,9 @@
 
-clear all
+clear
 close all
 clc
 
-D = 2;
+D = 3;
 nF = 3;
 
 lb = -2*ones(1,D);
@@ -15,10 +15,10 @@ yy = testFuncs.Rosenbrock(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,D)];
+x2 = [lb + (ub - lb).*lhsdesign(20,D)];%20
 y2 = testFuncs.Rosenbrock(x2,2);
 
-x3 = [lb + (ub - lb).*lhsdesign(100,D)];
+x3 = [lb + (ub - lb).*lhsdesign(100,D)];%100
 y3 = testFuncs.Rosenbrock(x3,3);
 
 x{1} = x1;
@@ -54,7 +54,8 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
-dec = RL.TS(10,3);
+%%
+dec = RL.TS(30,3);
 
 
 %%
@@ -94,7 +95,7 @@ for jj = 1:200
 
     nu = exp(nu);
 
-    [~,in] = max(sqrt(siggn.*nu));
+    [~,in] = max(0.5*(siggn+nu));
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn,1e-4);
@@ -139,6 +140,9 @@ for jj = 1:200
     R2MF(jj) = 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy);
     RMAEMF(jj) = max(abs(yy - MF.eval_mu(xx)))./std(yy);
 
+    [me,ime] = max(abs(yy - MF.eval_mu(xx)));
+    maxeMF(jj) = me./abs(yy(ime));
+
     cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1)+C(3)*size(x{3},1);
 
     figure(3)
@@ -152,6 +156,7 @@ for jj = 1:200
     hold on
     plot(cost,RMAEz)
     plot(cost,RMAEMF)
+    plot(cost,maxeMF)
 
     figure(5)
     clf(5)
@@ -166,7 +171,7 @@ for jj = 1:200
 
     drawnow
 
-    if RMAEMF(jj)<0.1
+    if maxeMF(jj)<0.1
         break
     end
 end
@@ -174,7 +179,7 @@ end
 
 %%
 
-xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
+xi = lb + (ub - lb).*lhsdesign(ceil(cost(end)/C(1)),D);
 yi = testFuncs.Rosenbrock(xi,1);
 
 Zi = GP(mb,b);

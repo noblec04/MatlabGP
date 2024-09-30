@@ -3,7 +3,7 @@ clear
 close all
 clc
 
-xx = lhsdesign(10,1);
+xx = lhsdesign(5,1);
 yy = normrnd(forr(xx,0),0*forr(xx,0)+1);
 
 yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
@@ -11,29 +11,27 @@ yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers1{1} = NN.FF(3,12);
-layers1{2} = NN.FF(12,6);
-layers1{3} = NN.FF(6,3);
+layers1{1} = NN.FF(3,6);
+layers1{2} = NN.FF(6,6);
+layers1{3} = NN.FF(6,6);
 
 acts1{1} = NN.SWISH(0.8);
-acts1{2} = NN.SWISH(0.8);
+acts1{2} = NN.SWISH(1.2);
 
-lss = NN.MAE();
-
-enc = NN.NN(layers1,acts1,lss);
+enc = NN.NN(layers1,acts1,[]);
 
 layers2{1} = NN.FF(3,6);
-layers2{2} = NN.FF(6,12);
-layers2{3} = NN.FF(12,3);
+layers2{2} = NN.FF(6,6);
+layers2{3} = NN.FF(6,3);
 
-acts2{1} = NN.SWISH(0.8);
+acts2{1} = NN.SWISH(1.2);
 acts2{2} = NN.SWISH(0.8);
 
-lss = NN.MAE();
+dec = NN.NN(layers2,acts2,[]);
 
-dec = NN.NN(layers2,acts2,lss);
+lss = NN.VAELoss(1e-6);
 
-AE1 = NN.AE(enc,dec,lss);
+AE1 = NN.VAE(enc,dec,lss);
 
 %%
 
@@ -44,7 +42,7 @@ t0 = AE1.getHPs();
 %%
 
 tic
-[AE2,fval] = AE1.train(yy,yy);%,xv,fv
+[AE2,fval,xv,fv] = AE1.train(yy,yy);%,xv,fv
 toc
 
 %%

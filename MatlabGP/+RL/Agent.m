@@ -21,9 +21,9 @@ classdef Agent
 
         end
 
-        function obj = train(obj,R)
+        function obj = train(obj,S,R)
 
-            obj.Q = obj.Q.train(R);
+            obj.Q = obj.Q.train(S,R);
 
         end
     end
