@@ -1,5 +1,7 @@
 classdef CE
 
+    %Cross-Entropy Loss
+    
     properties
 
     end

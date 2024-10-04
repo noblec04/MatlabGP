@@ -29,7 +29,7 @@ classdef NN
             for i = 1:nl-1
                 [y] = obj.layers{i}.forward(y);
                 [y] = obj.activations{i}.forward(y);
-                obj.layers{i}.out = y;
+                %obj.layers{i}.out = y;
             end
 
             [y] = obj.layers{nl}.forward(y);

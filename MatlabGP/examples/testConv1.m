@@ -3,53 +3,43 @@ clear
 close all
 clc
 
-xx = lhsdesign(30,1);
-yy = normrnd(forr(xx,0),0*forr(xx,0)+0.3);
+xx = lhsdesign(20,1);
+yy = normrnd(forr(xx,0),0*forr(xx,0)+1);
 
 yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers1{1} = NN.FF(3,6);
-layers1{2} = NN.FF(6,6);
-layers1{3} = NN.FF(6,4);
+%%
+
+layers1{1} = NN.C1(3);
+layers1{2} = NN.C1(3);
+layers1{3} = NN.FF(3,1);
 
 acts1{1} = NN.SWISH(0.8);
-acts1{2} = NN.SNAKE(8);
+acts1{2} = NN.SWISH(1.2);
 
-enc = NN.NN(layers1,acts1,[]);
+lss = NN.MSE();
 
-layers2{1} = NN.FF(2,6);
-layers2{2} = NN.FF(6,6);
-layers2{3} = NN.FF(6,3);
+CNN = NN.NN(layers1,acts1,lss);
 
-acts2{1} = NN.SNAKE(8);
-acts2{2} = NN.SWISH(0.8);
-
-dec = NN.NN(layers2,acts2,[]);
-
-lss = NN.VAELoss(1);
-
-AE1 = NN.VAE(enc,dec,lss);
 
 %%
 
-t0 = AE1.getHPs();
+t0 = CNN.getHPs();
 
-[e,de] = AE1.loss(t0,yy,yy);
+[e,de] = CNN.loss(t0,yy,yy(:,1));
 
 %%
 
 tic
-[AE2,fval,xv,fv] = AE1.train(yy,yy);%,xv,fv
+[CNN2,fval] = CNN.train(yy,yy(:,1));%,xv,fv
 toc
 
 %%
 
-yp2 = AE2.forward(yy);
-
-zz = AE2.Encoder.forward(yy);
+yp2 = CNN2.forward(yy);
 
 
 %%
@@ -60,7 +50,7 @@ zz = AE2.Encoder.forward(yy);
 
 figure
 %plot(xmesh,yp1)
-plot(yy,yp2,'.')
+plot(yy(:,1),yp2,'.')
 
 %%
 
