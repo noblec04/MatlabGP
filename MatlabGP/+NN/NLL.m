@@ -12,7 +12,11 @@ classdef NLL
             mu = yp(:,1);
             sig = exp(yp(:,2));
 
-            e = sum(log(sig+eps) + ((y'-mu).^2)./(sig.^2+eps));
+            if size(y,1)==1
+                e = sum(log(sig+eps) + ((y(1,:)'-mu).^2)./(sig.^2+eps));
+            else
+                e = sum(log(y(2,:)+eps) + ((y(1,:)'-mu).^2)./(y(2,:).^2+eps)) + sum((sig - y(2,:)).^2);
+            end
 
         end
     end

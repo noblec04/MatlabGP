@@ -3,23 +3,23 @@ clear
 close all
 clc
 
-D = 2;
+D = 1;
 nF = 3;
 
-lb = -2*ones(1,D);
-ub = 2*ones(1,D);
+lb = 0;
+ub = 1;
 
-xx = lb + (ub - lb).*lhsdesign(50000,D);
-yy = testFuncs.Rosenbrock(xx,1);
+xx = lb + (ub - lb).*lhsdesign(500,1);
+yy = testFuncs.Forrester(xx,1);
 
-x1 = lb + (ub - lb).*lhsdesign(5,D);
-y1 = testFuncs.Rosenbrock(x1,1);
+x1 = [0;lb + (ub - lb).*lhsdesign(1,1);1];
+y1 = testFuncs.Forrester(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,D)];%20
-y2 = testFuncs.Rosenbrock(x2,2);
+x2 = [0;lb + (ub - lb).*lhsdesign(5,D);1];%20
+y2 = testFuncs.Forrester(x2,2);
 
-x3 = [lb + (ub - lb).*lhsdesign(100,D)];%100
-y3 = testFuncs.Rosenbrock(x3,3);
+x3 = [0;lb + (ub - lb).*lhsdesign(6,D);1];%100
+y3 = testFuncs.Forrester(x3,3);
 
 x{1} = x1;
 x{2} = x2;
@@ -34,7 +34,7 @@ ma = means.const(1);
 mb = means.linear(ones(1,D));
 
 a = kernels.RQ(2,1,ones(1,D+nF-1));
-b = kernels.RQ(2,1,ones(1,D));
+b = kernels.EQ(1,ones(1,D));
 a.signn = eps;
 b.signn = eps;
 
@@ -49,27 +49,26 @@ toc
 
 %%
 tic
-MF = NLMFGP(Z,ma,a);
+MF = NLMFGP(Z,ma,a);%
 MF = MF.condition();
 MF = MF.train();
 toc
 
 %%
-dec = RL.TS(30,3);
-
+dec = RL.TS(10,3);
 
 %%
 figure
 hold on
-utils.plotSurf(Z{1},1,2,'color','r','CI',false)
-utils.plotSurf(Z{2},1,2,'color','b','CI',false)
-utils.plotSurf(Z{3},1,2,'color','g','CI',false)
+utils.plotLineOut(Z{1},0,1,'color','r')
+utils.plotLineOut(Z{2},0,1,'color','b')
+utils.plotLineOut(Z{3},0,1,'color','g')
 
 %%
 
 figure
 hold on
-utils.plotSurf(MF,1,2)
+utils.plotLineOut(MF,0,1)
 
 %%
 
@@ -90,6 +89,10 @@ for jj = 1:200
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
     siggn(3) = abs(MF.expectedReward(xn,3))/(C(3));
+
+    % siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
+    % siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
+    % siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
      
     [~,nu] = dec.action();
 
@@ -98,23 +101,23 @@ for jj = 1:200
     [~,in] = max(0.5*(siggn+nu));
 
     if in==1
-        [x{1},flag] = utils.catunique(x{1},xn,1e-4);
+        [x{1},flag] = utils.catunique(x{1},xn,1e-2);
         if flag
-            y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
+            y{1} = [y{1}; testFuncs.Forrester(xn,1)];
         end
     end
 
     if in==2 || in==1
-        [x{2},flag] = utils.catunique(x{2},xn,1e-4);
+        [x{2},flag] = utils.catunique(x{2},xn,1e-2);
         if flag
-            y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
+            y{2} = [y{2}; testFuncs.Forrester(xn,2)];
         end
     end
 
     if in==3 || in==1
-        [x{3},flag] = utils.catunique(x{3},xn,1e-4);
+        [x{3},flag] = utils.catunique(x{3},xn,1e-2);
         if flag
-            y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
+            y{3} = [y{3}; testFuncs.Forrester(xn,3)];
         end
     end
 
@@ -171,7 +174,7 @@ for jj = 1:200
 
     drawnow
 
-    if maxeMF(jj)<0.1
+    if RMAEMF(jj)<0.1
         break
     end
 end
@@ -180,7 +183,7 @@ end
 %%
 
 xi = lb + (ub - lb).*lhsdesign(ceil(cost(end)/C(1)),D);
-yi = testFuncs.Rosenbrock(xi,1);
+yi = testFuncs.Forrester(xi,1);
 
 Zi = GP(mb,b);
 Zi = Zi.condition(xi,yi,lb,ub);

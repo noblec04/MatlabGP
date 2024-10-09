@@ -813,6 +813,9 @@ classdef AutoDiff
                 elseif nargout == 2
                     [sx, sy] = size(x.values);
                     varargout = {sx, sy};
+                elseif nargout == 3
+                    [sx, sy, sz] = size(x.values);
+                    varargout = {sx, sy, sz};
                 else
                     error('not yet coded')
                 end

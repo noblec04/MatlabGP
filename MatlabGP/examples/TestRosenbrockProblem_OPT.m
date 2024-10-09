@@ -3,7 +3,7 @@ clear
 close all
 clc
 
-D = 2;
+D = 3;
 nF = 3;
 
 lb = -2*ones(1,D);
@@ -15,10 +15,10 @@ yy = testFuncs.Rosenbrock(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,D)];%20
+x2 = [lb + (ub - lb).*lhsdesign(20,D)];
 y2 = testFuncs.Rosenbrock(x2,2);
 
-x3 = [lb + (ub - lb).*lhsdesign(100,D)];%100
+x3 = [lb + (ub - lb).*lhsdesign(100,D)];
 y3 = testFuncs.Rosenbrock(x3,3);
 
 x{1} = x1;
@@ -54,16 +54,33 @@ MF = MF.condition();
 MF = MF.train();
 toc
 
+dec = RL.TS(20,3);
+
 %%
-dec = RL.TS(30,3);
+
+% mc = means.linear(ones(1,D));%*means.sine(1,10,0,1);
+% c = kernels.RQ(2,1,ones(1,D));
+% c.signn = 1;
+% 
+% LOO = GP(mc,c);
+% 
+% LOOZ{1} = LOO.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+% LOOZ{1} = LOOZ{1}.train();
+% LOOZ{2} = LOO.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+% LOOZ{2} = LOOZ{2}.train();
+% LOOZ{3} = LOO.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
+% LOOZ{3} = LOOZ{3}.train();
+% 
+% LOOMF = LOO.condition(x{1},log(abs(MF.LOO)),lb,ub);
+% LOOMF = LOOMF.train();
 
 
 %%
 figure
 hold on
-utils.plotSurf(Z{1},1,2,'color','r','CI',false)
-utils.plotSurf(Z{2},1,2,'color','b','CI',false)
-utils.plotSurf(Z{3},1,2,'color','g','CI',false)
+utils.plotSurf(Z{1},1,2,'color','r')
+utils.plotSurf(Z{2},1,2,'color','b')
+utils.plotSurf(Z{3},1,2,'color','g')
 
 %%
 
@@ -85,7 +102,18 @@ C = [50 30 1];%20
 
 for jj = 1:200
    
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmaxGrid(@BO.UCB,LOOMF);
+    %[xn,Rn] = BO.argmaxGrid(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    [xn,Rn] = BO.argmin(@BO.EImin,MF);
+
+    % siggn(1) = exp((LOOZ{1}.eval(xn)))/(C(1));
+    % siggn(2) = exp((LOOZ{2}.eval(xn)))/(C(2));
+    % siggn(3) = exp((LOOZ{3}.eval(xn)))/(C(3));
+
+    %siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
+    %siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
+    %siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
 
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
@@ -95,24 +123,32 @@ for jj = 1:200
 
     nu = exp(nu);
 
-    [~,in] = max(0.5*(siggn+nu));
+    [~,in] = max(sqrt(siggn.*nu));
+
+
+    % switch mod(jj,5)==0
+    %     case 0
+    %         [~,in] = max(siggn);
+    %     case 1
+    %         in = dec.action();
+    % end
 
     if in==1
-        [x{1},flag] = utils.catunique(x{1},xn,1e-4);
+        [x{1},flag] = utils.catunique(x{1},xn);
         if flag
             y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
         end
     end
 
     if in==2 || in==1
-        [x{2},flag] = utils.catunique(x{2},xn,1e-4);
+        [x{2},flag] = utils.catunique(x{2},xn);
         if flag
             y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
         end
     end
 
     if in==3 || in==1
-        [x{3},flag] = utils.catunique(x{3},xn,1e-4);
+        [x{3},flag] = utils.catunique(x{3},xn);
         if flag
             y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
         end
@@ -134,16 +170,19 @@ for jj = 1:200
 
     dec = dec.addReward(in,Ri(jj));
 
+    % LOOZ{1} = LOOZ{1}.condition(x{1},log(abs(Z{1}.LOO)),lb,ub);
+    % LOOZ{2} = LOOZ{2}.condition(x{2},log(abs(Z{2}.LOO)),lb,ub);
+    % LOOZ{3} = LOOZ{3}.condition(x{3},log(abs(Z{3}.LOO)),lb,ub);
+     
+    % LOOMF = LOOMF.condition(x{1},log(abs(MF.LOO)),lb,ub);
+
     R2z(jj) = 1 - mean((yy - Z{1}.eval_mu(xx)).^2)./var(yy);
     RMAEz(jj) = max(abs(yy - Z{1}.eval_mu(xx)))./std(yy);
 
     R2MF(jj) = 1 - mean((yy - MF.eval_mu(xx)).^2)./var(yy);
     RMAEMF(jj) = max(abs(yy - MF.eval_mu(xx)))./std(yy);
 
-    [me,ime] = max(abs(yy - MF.eval_mu(xx)));
-    maxeMF(jj) = me./abs(yy(ime));
-
-    cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1)+C(3)*size(x{3},1);
+    cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1);%+C(3)*size(x{3},1);
 
     figure(3)
     clf(3)
@@ -156,7 +195,6 @@ for jj = 1:200
     hold on
     plot(cost,RMAEz)
     plot(cost,RMAEMF)
-    plot(cost,maxeMF)
 
     figure(5)
     clf(5)
@@ -164,14 +202,9 @@ for jj = 1:200
     plot(cost,Rie)
     plot(cost,Ri)
 
-    figure(6)
-    clf(6)
-    hold on
-    dec.plotDists
-
     drawnow
 
-    if maxeMF(jj)<0.1
+    if RMAEMF(jj)<0.05
         break
     end
 end
@@ -179,14 +212,14 @@ end
 
 %%
 
-xi = lb + (ub - lb).*lhsdesign(ceil(cost(end)/C(1)),D);
-yi = testFuncs.Rosenbrock(xi,1);
-
-Zi = GP(mb,b);
-Zi = Zi.condition(xi,yi,lb,ub);
-Zi = Zi.train();
-
-%%
-
-1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
-max(abs(yy - Zi.eval_mu(xx)))./std(yy)
+% xi = lb + (ub - lb).*lhsdesign(size(x{1},1),D);
+% yi = testFuncs.Rosenbrock(xn,1);
+% 
+% Zi = GP(mb,b);
+% Zi = Zi.condition(xi,yi,lb,ub);
+% Zi = Zi.train();
+% 
+% %%
+% 
+% 1 - mean((yy - Zi.eval_mu(xx)).^2)./var(yy)
+% max(abs(yy - Zi.eval_mu(xx)))./std(yy)

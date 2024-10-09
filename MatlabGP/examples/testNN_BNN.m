@@ -5,6 +5,7 @@ clc
 
 xx = [0;lhsdesign(100,1);1];
 yy = normrnd(forr(xx,0),0.01*forr(xx,0).^2+0.5);
+ee = 0.01*forr(xx,0).^2+0.1;
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
@@ -23,7 +24,7 @@ nnet = NN.NN(layers,acts,lss);
 %%
 
 tic
-[nnet2,fval] = nnet.train(xx,yy);%,xv,fv
+[nnet2,fval] = nnet.train(xx,yy);%,xv,fv %[yy; ee]
 toc
 
 %%

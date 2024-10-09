@@ -63,7 +63,7 @@ classdef MFGP
             nF = numel(obj.GPs);
 
             for i = nF:-1:2
-                obj.Zd{i} = obj.Zd{i}.train2();
+                obj.Zd{i} = obj.Zd{i}.train();
             end
         end
 

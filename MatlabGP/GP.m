@@ -137,17 +137,26 @@ classdef GP
 
             obj.kernel.scale = 1;
 
-            res = obj.Y - obj.mean.eval(obj.X);
-
-            sigp = std(res);%sqrt(abs(res'*obj.Kinv*res./(size(obj.Y,1))));
-
-            obj.kernel.scale = sigp^2;
-
             [obj.K] = obj.kernel.build(xx,xx);
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
+
+            obj.Kinv = pinv(obj.K,eps);
+
+            res = obj.Y - obj.mean.eval(obj.X);
+
+            sigp = sqrt(abs(res'*obj.Kinv*res./(size(obj.Y,1))));
+
+            obj.kernel.scale = sigp^2;
+
+            obj.K = obj.kernel.scale*obj.K;
+            obj.Kinv = obj.Kinv/obj.kernel.scale;
+
+            %[obj.K] = obj.kernel.build(xx,xx);
+
+            %obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
             
-            obj.Kinv = pinv(obj.K);
+            %obj.Kinv = pinv(obj.K);
 
             obj.alpha = obj.Kinv*(res);
 
