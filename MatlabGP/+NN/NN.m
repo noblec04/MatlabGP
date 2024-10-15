@@ -117,6 +117,45 @@ classdef NN
 
         end
 
+        function [e,de] = Batchloss(obj,V,x,y,N)
+
+            nV = length(V(:));
+
+            V = AutoDiff(V(:));
+
+            obj = obj.setHPs(V(:));
+
+            M = 0;
+
+            e = 0;
+            de = 0;
+
+            while size(x,1)>0
+                    M=M+1;
+                    itrain = randsample(size(x,1),min(N,size(x,1)));
+
+                    xt = x(itrain,:);
+                    yt = y(itrain,:);
+
+                    x(itrain,:)=[];
+                    y(itrain,:)=[];
+
+                    [yp] = obj.forward(xt);
+
+                    [eout] = obj.lossfunc.forward(yt,yp);
+
+                    e1 = sum(eout,2);
+
+                    e = e + getvalue(e1);
+                    de1 = getderivs(e1);
+                    de = de + reshape(full(de1),[1 nV]);
+            end
+
+            e = e/M;
+            de = de/M;
+
+        end
+
         function [obj,fval] = train(obj,x,y,lb,ub)%,xv,fv
 
             obj.X = x;
@@ -135,6 +174,34 @@ classdef NN
             tx0 = (obj.getHPs());
 
             func = @(V) obj.loss(V,x,y);
+
+
+            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',3000,'MaxIterations',3000,'Display','final');
+            [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
+
+            %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',1000,'tol',1*10^(-7));
+
+            obj = obj.setHPs(theta(:));
+        end
+
+        function [obj,fval] = Batchtrain(obj,x,y,N,lb,ub)%,xv,fv
+
+            obj.X = x;
+            obj.Y = y;
+
+            if nargin<5
+                obj.lb_x = min(x);
+                obj.ub_x = max(x);
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
+
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+            tx0 = (obj.getHPs());
+
+            func = @(V) obj.Batchloss(V,x,y,N);
 
 
             opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',3000,'MaxIterations',3000,'Display','final');
