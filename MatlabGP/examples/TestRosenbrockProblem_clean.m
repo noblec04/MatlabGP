@@ -95,7 +95,7 @@ for jj = 1:200
 
     nu = exp(nu);
 
-    [~,in] = max(0.5*(siggn+nu));
+    [~,in] = max(sqrt(siggn.*nu));
 
     if in==1
         [x{1},flag] = utils.catunique(x{1},xn,1e-4);

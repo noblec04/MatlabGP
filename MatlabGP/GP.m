@@ -329,7 +329,7 @@ classdef GP
 
             func = @(x) obj.loss(x);
 
-            for i = 1:3
+            for i = 1:5
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
                 opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',1000,'OptimalityTolerance',1*10^(-4));
