@@ -1,5 +1,5 @@
 
-xx = -3 + 6*lhsdesign(150,1);
+xx = -3 + 6*lhsdesign(1500,1);
 yy = normrnd(sin(3*xx)./xx,0.1);
 
 d = kernels.EQ(1,2);

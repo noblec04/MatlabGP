@@ -1,5 +1,5 @@
 
-xx = lhsdesign(3000,2);
+xx = lhsdesign(30000,2);
 yy = normrnd((6*xx(:,1)-2).^2.*sin(12*xx(:,2)-4),2);
 
 d = kernels.Matern52(1,[3 1]);

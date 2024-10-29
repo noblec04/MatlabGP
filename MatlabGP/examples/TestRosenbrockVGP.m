@@ -36,7 +36,6 @@ opts = optimoptions('fmincon','Display','off');
 
 tic
 for i = 1:50
-    %[xn,rn(i)] = fmincon(@(x) Z.newXuDiff(x),rand(1,D),[],[],[],[],0*lb,0*ub + 1,[],opts);
     Z = Z.addInducingPoints(Z.newXuDiff());
 end
 toc

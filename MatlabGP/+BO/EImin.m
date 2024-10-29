@@ -8,7 +8,6 @@ ys = min(Z.Y);
 
 %Calculate std at x
 [varf] = Z.eval_var(x);
-
 [muf] = Z.eval_mu(x);
 
 if nargout>1

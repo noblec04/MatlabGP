@@ -1,7 +1,7 @@
 
 
 x1 = RandomVariable.RV('dist',normrnd(-2,0.5,[1,2000]),'res',3000);
-x2 = RandomVariable.RV('dist',normrnd(0,1,[1,2000]),'res',3000);
+x2 = RandomVariable.RV('dist',gamrnd(3,0.3,[1,2000]),'res',3000);
 
 xm = -10:0.05:10;
 
