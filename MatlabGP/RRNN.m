@@ -53,7 +53,7 @@ classdef RRNN
                 
                 obj.Wout{i} = lsqminnorm([H{i}, ones(size(H{i},1),1)],R);
 
-                Ri(i) = sum(abs(R));
+                Ri(i,:) = sum(abs(R),1);
 
                 R = R - [H{i}, ones(size(H{i},1),1)]*obj.Wout{i};
 
@@ -103,8 +103,33 @@ classdef RRNN
             y = obj.unscale_y(y);
         end
 
-        function sig = eval_var(~,x)
-            sig = 0*x(:,1);
+        function sig = eval_var(obj,X)
+            %PREDICT Predicts the output of the trained model for new input
+            %data
+            % Inputs:
+            %   obj - trained RRNN
+            %   X - Input data
+            
+            % Output:
+            %   y - output output
+            
+            H = obj.activation.forward([X, ones(size(X,1),1)] * obj.Win{1});
+            y1 = [H, ones(size(H,1),1)] * obj.Wout{1};
+
+            y = 0;
+            X = obj.scale(X);
+
+            for i = 1:numel(obj.Win)
+
+                H = obj.activation.forward([X, ones(size(X,1),1)] * obj.Win{i});
+                y = y + [H, ones(size(H,1),1)] * obj.Wout{i};
+
+            end
+
+            y = obj.unscale_y(y);
+            y1 = obj.unscale_y(y1);
+
+            sig = (y1 - y).^2;
         end
 
         function [mu,sig] = eval_all(obj,x)

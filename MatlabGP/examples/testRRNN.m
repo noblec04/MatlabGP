@@ -3,23 +3,24 @@ clear
 close all
 clc
 
-xx = [0;lhsdesign(10,1);1];
+xx = [0;lhsdesign(8,1);1];
 yy = normrnd(forr(xx,0),0*forr(xx,0));
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-nnet = RRNN(NN.SWISH(0.8),10,0,1);
+nnet = RRNN(NN.SWISH(2),10,0,1);
 
 %%
 
 tic
-nnet2 = nnet.train(xx,yy,5);%,xv,fv
+[nnet2,Ri] = nnet.train(xx,yy,5);%,xv,fv
 toc
 
 %%
 
 yp2 = nnet2.eval(xmesh);
+sig2 = nnet2.eval_var(xmesh);
 
 
 %%
@@ -34,6 +35,11 @@ hold on
 %plot(xmesh,yp1)
 plot(xmesh,yp2)
 plot(xx,yy,'x')
+
+figure
+plot(xmesh,sig2)
+
+1 - mean((ymesh - yp2).^2)./var(ymesh)
 
 %%
 
