@@ -75,7 +75,11 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
+            v = ksf*(obj.K\ksf');
+
+            sig = abs(obj.kernel.scale - v);
+
+            %sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
 
         end
 
@@ -99,9 +103,13 @@ classdef GP
 
         function y = samplePrior(obj,x)
             
-            K = obj.kernel.build(x,x) + 5*eps*eye(size(x,1)) + diag(0*x(:,1)+obj.kernel.signn);
+            Kxx = obj.kernel.build(x,x) + 5*eps*eye(size(x,1)) + diag(0*x(:,1)+obj.kernel.signn);
 
-            y = mvnrnd(0*x(:,1),K);
+            L1 =chol(Kxx+(1e-6)*eye(size(Kxx)));
+
+            z = mvnrnd(0*x(:,1),eye(size(Kxx)));
+
+            y = L1*z';
 
         end
 
@@ -266,17 +274,17 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            %[xxt,LL] = optim.AdaptiveGridSampling(func,tlb,tub,10,20,4);
+            [xxt,LL] = optim.AdaptiveGridSampling(func,tlb,tub,10,20,4);
 
-            xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
-
-            for ii = 1:size(xxt,1)
-                LL(ii) = func(xxt(ii,:));
-            end
+            % xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
+            % 
+            % for ii = 1:size(xxt,1)
+            %     LL(ii) = func(xxt(ii,:));
+            % end
 
             LL = exp(1 + LL - max(LL));
 
-            theta = sum(xxt.*LL')/sum(LL);
+            theta = sum(xxt.*LL(:))/sum(LL);
 
             % for i = 1:2
             %     %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));

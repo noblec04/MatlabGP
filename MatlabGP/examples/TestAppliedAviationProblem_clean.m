@@ -75,8 +75,8 @@ C = [50 1];
 %%
 for jj = 1:100
     
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
-    %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
