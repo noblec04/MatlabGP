@@ -116,6 +116,24 @@ classdef NLMFGP
 
         end
 
+        function [dy] = eval_grad(obj,x)
+
+                nF = numel(obj.GPs);
+                nX = size(x,2);
+
+                Xall = x;
+
+                for i = 2:nF
+                    Xn = obj.GPs{i}.eval(x);
+                    Xall = [Xall Xn];
+                end
+
+                dy = obj.Zd.eval_grad(Xall);
+
+                dy = dy(:,1:nX);
+
+        end
+
         function [sig] = eval_var(obj,x)
             
 

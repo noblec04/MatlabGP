@@ -53,6 +53,10 @@ classdef GP
             y = obj.mean.eval(x) + ksf*obj.alpha;
 
             if nargout>1
+
+                %v = dot(ksf',(obj.K\ksf'))';
+                %sig = (abs(obj.kernel.scale - v));
+
                 sig = abs(obj.kernel.scale  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
         end
@@ -75,11 +79,10 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            v = ksf*(obj.K\ksf');
+            %v = dot(ksf',(obj.K\ksf'));
+            %sig = abs(obj.kernel.scale - v);
 
-            sig = abs(obj.kernel.scale - v);
-
-            %sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
+            sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
 
         end
 
@@ -153,7 +156,10 @@ classdef GP
 
             res = obj.Y - obj.mean.eval(obj.X);
 
+            %obj.alpha = obj.K\(res);
+
             sigp = sqrt(abs(res'*obj.Kinv*res./(size(obj.Y,1))));
+            %sigp = sqrt(abs(dot(res',obj.alpha)./(size(obj.Y,1))));
 
             obj.kernel.scale = sigp^2;
 
@@ -166,7 +172,8 @@ classdef GP
             
             obj.Kinv = pinv(obj.K);
 
-            obj.alpha = obj.Kinv*(res);
+            %obj.alpha = obj.alpha/sigp^2;
+            obj.alpha = obj.Kinv*res;
 
         end
 
@@ -311,7 +318,6 @@ classdef GP
                 theta(end) = [];
             end
 
-
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
             obj = obj.condition(obj.X,obj.Y,obj.lb_x,obj.ub_x);
@@ -337,10 +343,10 @@ classdef GP
 
             func = @(x) obj.loss(x);
 
-            for i = 1:5
+            for i = 1:1
                 tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',1000,'OptimalityTolerance',1*10^(-4));
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',1000,'OptimalityTolerance',1*10^(-3));
 
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
 

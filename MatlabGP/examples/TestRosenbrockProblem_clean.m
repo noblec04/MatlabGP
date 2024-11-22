@@ -15,7 +15,7 @@ yy = testFuncs.Rosenbrock(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(20,D)];%20
+x2 = [lb + (ub - lb).*lhsdesign(8,D)];%20
 y2 = testFuncs.Rosenbrock(x2,2);
 
 x3 = [lb + (ub - lb).*lhsdesign(100,D)];%100
@@ -35,8 +35,8 @@ mb = means.linear(ones(1,D));
 
 a = kernels.RQ(2,1,ones(1,D+nF-1));
 b = kernels.RQ(2,1,ones(1,D));
-a.signn = eps;
-b.signn = eps;
+a.signn = 1e-6;
+b.signn = 1e-6;
 
 %%
 tic
@@ -85,7 +85,8 @@ C = [50 30 1];%20
 
 for jj = 1:200
    
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
