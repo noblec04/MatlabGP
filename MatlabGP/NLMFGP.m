@@ -1,8 +1,7 @@
 %{
-    Multi-Fidelity Gaussian Process
+    Non-Linear Multi-Fidelity Gaussian Process
     
-    An auto-regressive (AR(1)) model based on Kennedy and O'Hagan using the
-    recursive formulation of Le Gratiet.
+    An auto-regressive (AR(N)) model based on Perdikaris
 
     The model can be constructed using data from nF fidelities.
 

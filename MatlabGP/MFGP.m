@@ -49,6 +49,8 @@ classdef MFGP
 
         function obj = condition(obj,GPs)
 
+            obj.GPs = GPs;
+
             nF = numel(obj.GPs);
 
             for i = nF:-1:2

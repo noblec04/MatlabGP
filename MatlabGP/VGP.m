@@ -64,8 +64,11 @@ classdef VGP
             y = obj.mean.eval(x) + ksu*obj.alpha;
 
             if nargout>1
+                
+                v1 = obj.Kuu\ksu';
+                v2 = obj.M\ksu';
 
-                sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
+                sigs = dot(ksu',v2)-dot(ksu',v1);
             
                 sig = obj.kernel.scale + obj.kernel.signn + sigs';
             end
@@ -102,7 +105,10 @@ classdef VGP
 
             ksu = obj.kernel.build(xs,xu);
 
-            sigs = -dot(ksu',(obj.Kuuinv)*ksu') + dot(ksu',obj.Minv*ksu');
+            v1 = obj.Kuu\ksu';
+            v2 = obj.M\ksu';
+
+            sigs = dot(ksu',v2)-dot(ksu',v1);
 
             sig = obj.kernel.scale + obj.kernel.signn + sigs';
 
@@ -205,16 +211,15 @@ classdef VGP
 
             obj.kernel.scale = std(Y)/2;
 
-            obj.Kuu = obj.kernel.build(xu,xu);
-            obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
+            obj.Kuu = obj.kernel.build(xu,xu) + (1e-6)*eye(size(xu,1));
+            %obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
             obj.B = obj.Kuf*obj.Kuf'/obj.kernel.signn;
             obj.M = obj.Kuu + obj.B;
-            obj.Minv = pinv(obj.M,1*10^(-7));
 
-            obj.alpha = obj.Minv*obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn;
+            obj.alpha = obj.M\(obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn);
 
         end
 
@@ -397,7 +402,6 @@ classdef VGP
                 
                 obj.B = obj.B + k2s*k2s'/obj.kernel.signn;
                 obj.M = obj.Kuu + obj.B;
-                obj.Minv = pinv(obj.M);
 
                 obj.alpha = obj.alpha + k2s*y/obj.kernel.signn;
             end

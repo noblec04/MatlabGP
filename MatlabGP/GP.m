@@ -54,10 +54,10 @@ classdef GP
 
             if nargout>1
 
-                %v = dot(ksf',(obj.K\ksf'))';
-                %sig = (abs(obj.kernel.scale - v));
+                v = dot(ksf',(obj.K\ksf'))';
+                sig = (abs(obj.kernel.scale - v));
 
-                sig = abs(obj.kernel.scale  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
+                %sig = abs(obj.kernel.scale  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
         end
         
@@ -79,10 +79,13 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            %v = dot(ksf',(obj.K\ksf'));
-            %sig = abs(obj.kernel.scale - v);
+            % v = obj.L\ksf';
+            % sig = abs(obj.kernel.scale - sum(v.^2,1))';
 
-            sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
+            v = dot(ksf',(obj.K\ksf'));
+            sig = abs(obj.kernel.scale - v);
+
+            %sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
 
         end
 
@@ -131,7 +134,7 @@ classdef GP
             
         end
 
-        function [obj] = condition(obj,X,Y,lb,ub)
+        function [obj] = conditionOld(obj,X,Y,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
@@ -147,7 +150,6 @@ classdef GP
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             obj.kernel.scale = 1;
-
             [obj.K] = obj.kernel.build(xx,xx);
 
             obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
@@ -174,6 +176,38 @@ classdef GP
 
             %obj.alpha = obj.alpha/sigp^2;
             obj.alpha = obj.Kinv*res;
+
+        end
+
+        function [obj] = condition(obj,X,Y,lb,ub)
+
+            obj.X = X;
+            obj.Y = Y;
+
+            if nargin<4
+                obj.lb_x = min(X);
+                obj.ub_x = max(X);
+            else
+                obj.lb_x = lb;
+                obj.ub_x = ub;
+            end
+
+            xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
+            obj.kernel.scale = 1;
+            [obj.K] = obj.kernel.build(xx,xx);
+            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn) + (1e-6)*eye(size(xx,1));
+
+            res = obj.Y - obj.mean.eval(obj.X);
+
+            obj.alpha = obj.K\res;
+
+            sigp = sqrt(abs(res'*obj.alpha./(size(obj.Y,1))));
+
+            obj.kernel.scale = sigp^2;
+
+            obj.K = obj.kernel.scale*obj.K;
+            obj.alpha = obj.alpha/sigp^2;
 
         end
 
