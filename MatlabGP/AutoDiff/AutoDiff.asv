@@ -553,37 +553,21 @@ classdef AutoDiff
             x.derivatives = -M2 * M1 * x.derivatives;
         end
 
-        function [y,flag] = chol(x,shape)
-            
-            if nargin<2
-                shape='lower';
-            end
+        function x = chol(x)
+            L = chol(x.values);
+            L2 = L;
 
-            [L,flag] = chol(x.values,shape);
+            Li = kron(inv(L2),speye(size(x.values, 1)));
 
-            if flag~=0
-                y=L;
-                return
-            end
+            A = (Li*(x.derivatives'*Li')');
 
-            for i = 1:size(x.derivatives,2)
-                A = L\reshape(x.derivatives(:,i),size(x))/L';
-                n = size(A,1);
-                A(1:(n+1):end) = 0.5*A(1:(n+1):end);
+            n = size(A,1);
+            A(1:(n+1):end) = 0.5*A(1:(n+1):end);
 
-                U = tril(0*A+1);
 
-                A(U~=1) = 0;
 
-                A = L*A;
-
-                y.derivatives(:,i) = A(:);
-            end
-
-            y.values = L;
-
-            y = AutoDiff(y);
-            
+            x.values = L;
+            x.derivatives = sparse(A);
 
         end
 

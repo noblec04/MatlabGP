@@ -1,13 +1,14 @@
 
-clear all
+clear
 close all
 clc
 
 xx = lhsdesign(20,2);
 yy = normrnd(forr(xx,0),0*forr(xx,0));
 
-yc(:,1) = double(yy>0);
+yc(:,1) = double(yy>0&yy<=1);
 yc(:,2) = double(yy<=0);
+yc(:,3) = double(yy>1);
 
 
 xmesh = lhsdesign(1000,2);
@@ -15,7 +16,7 @@ ymesh = forr(xmesh,0);
 
 layers{1} = NN.FF(2,3);
 layers{2} = NN.FF(3,6);
-layers{3} = NN.FF(6,2);
+layers{3} = NN.FF(6,3);
 
 acts{1} = NN.SNAKE(1);
 acts{2} = NN.SNAKE(1);
