@@ -12,13 +12,13 @@ ub = 1;
 xx = lb + (ub - lb).*lhsdesign(500,1);
 yy = testFuncs.Forrester(xx,1);
 
-x1 = [0;lb + (ub - lb).*lhsdesign(1,1);1];
+x1 = [0;1];
 y1 = testFuncs.Forrester(x1,1);
 
-x2 = [0;lb + (ub - lb).*lhsdesign(5,D);1];%20
+x2 = [0;lb + (ub - lb).*lhsdesign(1,D);1];%20
 y2 = testFuncs.Forrester(x2,2);
 
-x3 = [0;lb + (ub - lb).*lhsdesign(6,D);1];%100
+x3 = [0;lb + (ub - lb).*lhsdesign(1,D);1];%100
 y3 = testFuncs.Forrester(x3,3);
 
 x{1} = x1;
@@ -49,8 +49,8 @@ toc
 
 %%
 tic
-MF = NLMFGP(Z,ma,a);%
-MF = MF.condition();
+MF = MFGP(Z,ma,a);%
+MF = MF.condition(Z);
 MF = MF.train();
 toc
 
@@ -80,19 +80,19 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
 
-C = [50 30 1];%20
+C = [500 30 1];%20
 
 for jj = 1:200
    
-    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
-    siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
-    siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
-    siggn(3) = abs(MF.expectedReward(xn,3))/(C(3));
+    % siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
+    % siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
+    % siggn(3) = abs(MF.expectedReward(xn,3))/(C(3));
 
-    % siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
-    % siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
-    % siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
+    siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
+    siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
+    siggn(3) = abs(Z{3}.eval_var(xn))/(C(3));
      
     [~,nu] = dec.action();
 
@@ -127,8 +127,8 @@ for jj = 1:200
 
     yh1 = MF.eval(xn);
 
-    MF.GPs = Z;
-    MF = MF.condition();
+    %MF.GPs = Z;
+    MF = MF.condition(Z);
 
     yh2 = MF.eval(xn);
 
@@ -150,27 +150,32 @@ for jj = 1:200
 
     figure(3)
     clf(3)
+    utils.plotLineOut(MF,0,1)
     hold on
-    plot(cost,R2z)
-    plot(cost,R2MF)
-
-    figure(4)
-    clf(4)
-    hold on
-    plot(cost,RMAEz)
-    plot(cost,RMAEMF)
-    plot(cost,maxeMF)
-
-    figure(5)
-    clf(5)
-    hold on
-    plot(cost,Rie)
-    plot(cost,Ri)
-
-    figure(6)
-    clf(6)
-    hold on
-    dec.plotDists
+    plot(xn,yh2,'x')
+    % figure(3)
+    % clf(3)
+    % hold on
+    % plot(cost,R2z)
+    % plot(cost,R2MF)
+    % 
+    % figure(4)
+    % clf(4)
+    % hold on
+    % plot(cost,RMAEz)
+    % plot(cost,RMAEMF)
+    % plot(cost,maxeMF)
+    % 
+    % figure(5)
+    % clf(5)
+    % hold on
+    % plot(cost,Rie)
+    % plot(cost,Ri)
+    % 
+    % figure(6)
+    % clf(6)
+    % hold on
+    % dec.plotDists
 
     drawnow
 

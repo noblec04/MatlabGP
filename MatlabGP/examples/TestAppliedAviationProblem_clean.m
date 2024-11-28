@@ -75,11 +75,14 @@ C = [50 1];
 %%
 for jj = 1:100
     
-    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
-    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
-    siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
-    siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
+    %siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
+    %siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
+
+    siggn(1) = abs(Z{1}.eval_var(xn))/(C(1));
+    siggn(2) = abs(Z{2}.eval_var(xn))/(C(2));
 
     [~,nu] = dec.action();
 

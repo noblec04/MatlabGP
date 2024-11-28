@@ -572,10 +572,22 @@ classdef AutoDiff
             if isa(y, 'AutoDiff')
                 if isa(x, 'AutoDiff')
                     z.values = x.values \ y.values;
-                    if size(y, 2) > 1
-                        error('not yet implemented')
+                    % if size(y, 2) > 1
+                    %     error('not yet implemented')
+                    % end
+
+                    for i = 1:size(y.derivatives,2)
+
+                        Xi = reshape(kron(z.values', speye(size(x, 1))) * x.derivatives(:,i),size(y));
+                        Yi = reshape(y.derivatives(:,i),size(y));
+
+                        Zi = x.values\(Yi - Xi);
+
+                        z.derivatives(:,i) = Zi(:);
+
                     end
-                    z.derivatives = x.values \ (y.derivatives - kron(z.values', speye(size(x, 1))) * x.derivatives);
+
+                    %z.derivatives = x.values \ (y.derivatives - kron(z.values', speye(size(x, 1))) * x.derivatives);
                     z = AutoDiff(z);
 
                 else

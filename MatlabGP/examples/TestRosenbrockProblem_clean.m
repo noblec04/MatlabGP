@@ -99,21 +99,21 @@ for jj = 1:200
     [~,in] = max(sqrt(siggn.*nu));
 
     if in==1
-        [x{1},flag] = utils.catunique(x{1},xn,1e-4);
+        [x{1},flag] = utils.catunique(x{1},xn,1e-2);
         if flag
             y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
         end
     end
 
     if in==2 || in==1
-        [x{2},flag] = utils.catunique(x{2},xn,1e-4);
+        [x{2},flag] = utils.catunique(x{2},xn,1e-2);
         if flag
             y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
         end
     end
 
     if in==3 || in==1
-        [x{3},flag] = utils.catunique(x{3},xn,1e-4);
+        [x{3},flag] = utils.catunique(x{3},xn,1e-2);
         if flag
             y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
         end
@@ -146,6 +146,22 @@ for jj = 1:200
 
     cost(jj) = C(1)*size(x{1},1)+C(2)*size(x{2},1)+C(3)*size(x{3},1);
 
+    mkrs = {'x','+','o'};
+
+    % figure(3)
+    % clf(3)
+    % utils.contourf(MF,[0 0],2,1)
+    % axis square
+    % box on
+    % 
+    % figure(4)
+    % hold on
+    % plot(xn(1),xn(2),mkrs{in},'MarkerSize',12,'LineWidth',3)
+    % axis([-2 2 -2 2])
+    % axis square
+    % box on
+    % grid on
+
     figure(3)
     clf(3)
     hold on
@@ -172,7 +188,7 @@ for jj = 1:200
 
     drawnow
 
-    if maxeMF(jj)<0.1
+    if RMAEMF(jj)<0.1
         break
     end
 end

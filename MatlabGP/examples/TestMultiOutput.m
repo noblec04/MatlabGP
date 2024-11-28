@@ -49,9 +49,9 @@ ytest1 = Z1.eval(xtest1);
 ytest2 = Z1.eval(xtest2);
 ytest3 = Z1.eval(xtest3);
 
-sigtest1 = Z1.eval_var(xtest1);
-sigtest2 = Z1.eval_var(xtest2);
-sigtest3 = Z1.eval_var(xtest3);
+sigtest1 = Z1.eval_var(xtest1)';
+sigtest2 = Z1.eval_var(xtest2)';
+sigtest3 = Z1.eval_var(xtest3)';
 
 figure
 subplot(1,3,1)

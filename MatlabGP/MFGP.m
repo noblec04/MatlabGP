@@ -69,6 +69,14 @@ classdef MFGP
             end
         end
 
+        function obj = train2(obj)
+            nF = numel(obj.GPs);
+
+            for i = nF:-1:2
+                obj.Zd{i} = obj.Zd{i}.train2();
+            end
+        end
+
         function obj = resolve(obj,x,y,f)
             
             nF = numel(obj.GPs);

@@ -196,7 +196,7 @@ classdef GP
 
             obj.kernel.scale = 1;
             [obj.K] = obj.kernel.build(xx,xx);
-            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn) + (1e-6)*eye(size(xx,1));
+            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn) + (1e-14)*eye(size(xx,1));
 
             res = obj.Y - obj.mean.eval(obj.X);
 
@@ -225,7 +225,7 @@ classdef GP
 
             detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
 
-            if isnan(detk)
+            if isnan(detk)||isinf(detk)
                 detk = eps;
             end
 
@@ -250,7 +250,7 @@ classdef GP
 
             [obj] = obj.condition(obj.X,obj.Y);
 
-            detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
+            detk = det(obj.K/obj.kernel.scale + diag(0*obj.K(:,1) + obj.kernel.signn));
 
             loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.01*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
@@ -315,7 +315,7 @@ classdef GP
 
             func = @(x) obj.LL(x,regress,ntm);
 
-            [xxt,LL] = optim.AdaptiveGridSampling(func,tlb,tub,10,20,4);
+            [xxt,LL1] = optim.AdaptiveGridSampling(func,tlb,tub,10,20,4);
 
             % xxt = tlb + (tub - tlb).*lhsdesign(200*length(tlb),length(tlb));
             % 
@@ -323,7 +323,7 @@ classdef GP
             %     LL(ii) = func(xxt(ii,:));
             % end
 
-            LL = exp(1 + LL - max(LL));
+            LL = exp(1 + LL1 - max(LL1));
 
             theta = sum(xxt.*LL(:))/sum(LL);
 
