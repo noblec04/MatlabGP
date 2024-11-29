@@ -1,0 +1,10 @@
+
+clear
+clc
+
+A = AutoDiff([1,1,1]);
+
+[tf, yf] = ODE.rkf45(@(t,y) ODE.test.LorenzRHS(t,y), [A(1) A(2) A(6)], 0, 20, 0.01,  1e-4);
+
+L = sum((yf(:,end) - [1;1;25]).^2);
+
