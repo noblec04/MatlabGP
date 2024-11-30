@@ -8,20 +8,20 @@ function [t, y] = dormandprince(odefun, ...   % The ODE function
                                 )
 
 if isa(y0, 'AutoDiff')
-    y(:,1) = y0;
+    y{1} = y0;
 else
     y0_AD.values = y0;
     y0_AD.derivatives = 0*getderivs(AD);
 
     y0 = AutoDiff(y0_AD);
 
-    y(:,1) = y0;
+    y{1} = y0;
 end
 
 k = 2;
 t = ts;
 while t < tf
-    yn = y(:,k-1);
+    yn = y{k-1};
     tn = t(k-1);
     k1 = h * odefun(tn, yn);
     k2 = h * odefun(tn+h/5, yn+k1/5);
@@ -42,7 +42,7 @@ while t < tf
     E = norm(Y-Z); % local error estimation
     h = 0.9 * h * (TOL/E)^(1/5);   
     
-    y(:,k) = Y;
+    y{k} = Y;
 
     if isa(h, 'AutoDiff')
         t(k) = t(k-1) + h.values;

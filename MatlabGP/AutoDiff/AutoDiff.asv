@@ -761,11 +761,8 @@ classdef AutoDiff
             if isvector(x)
                 x = sum(abs(x.^p)).^(1 / p);
             elseif ismatrix(x)
-
-                x = sum(sum(abs(x.^p))).^(1 / p);
-
-                %[~, d, ~] = svd(x);
-                %x = max(d);
+                [~, d, ~] = svd(x);
+                x = max(d);
             else
                 error('not sure what matlab does in this case');
             end
