@@ -7,14 +7,18 @@ function [t, y] = dormandprince(odefun, ...   % The ODE function
                                 AD ...         % AutoDiff parameter set
                                 )
 
-if isa(y0, 'AutoDiff')
-    y{1} = y0;
+if nargin==7
+    if isa(y0, 'AutoDiff')
+        y{1} = y0;
+    else
+        y0_AD.values = y0;
+        y0_AD.derivatives = 0*getderivs(AD);
+
+        y0 = AutoDiff(y0_AD);
+
+        y{1} = y0;
+    end
 else
-    y0_AD.values = y0;
-    y0_AD.derivatives = 0*getderivs(AD);
-
-    y0 = AutoDiff(y0_AD);
-
     y{1} = y0;
 end
 

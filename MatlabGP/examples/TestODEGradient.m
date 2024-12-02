@@ -15,6 +15,8 @@ for i = 1:length(tf)
     dyfv(:,:,i) = full(getderivs(yf{i}));
 end
 
+figure
+hold on
 plot3(yfv(1,:),yfv(2,:),yfv(3,:))
 
 %{
