@@ -1,5 +1,5 @@
 
-clear all
+clear
 close all
 clc
 
@@ -18,7 +18,7 @@ acts{1} = NN.SWISH(1.1);
 acts{2} = NN.SWISH(2);
 acts{3} = NN.SWISH(3);
 
-lss = NN.NLL();
+lss = NN.NLL('normal');
 
 
 nnet = NN.NN(layers,acts,lss);

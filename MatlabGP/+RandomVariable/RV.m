@@ -46,11 +46,17 @@ classdef RV
             
             obj.res = in.res;
             
-            obj.pd = fitdist(obj.dist(:),'kernel');
+            obj.pd = fitdist(obj.dist(:),'kernel','Width',0.5);
             
             obj.mu = obj.pd.mean;
             obj.std = obj.pd.std;
             
+        end
+
+        function lp = logprob(obj,x)
+
+            lp = log(obj.pd.pdf(x));
+
         end
         
         function I = expectation(obj,ff)
@@ -69,7 +75,7 @@ classdef RV
         
         function plot(obj,x)
            
-            plot(x,obj.pd.pdf(x));
+            plot(x,obj.pd.pdf(x),'LineWidth',3);
             
         end
         

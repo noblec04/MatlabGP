@@ -182,6 +182,12 @@ classdef AutoDiff
             x.values = erf(x.values);
         end
 
+        function x = gamma(x)
+            tmp = gamma(x.values).*psi(x.values);
+            x.values = gamma(x.values);
+            x.derivatives = AutoDiff.spdiag(tmp) * x.derivatives;
+        end
+
         function x = exp(x)
             x.values = exp(x.values);
             x.derivatives = AutoDiff.spdiag(x.values) * x.derivatives;

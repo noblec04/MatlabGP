@@ -1,5 +1,5 @@
 classdef NN<kernels.Kernel
-    
+
     properties
         theta
     end
@@ -18,10 +18,15 @@ classdef NN<kernels.Kernel
 
         function [K] = forward_(obj,x1,x2,theta)
 
-            x1 = x1./theta;
-            x2 = x2./theta;
-           
-            K = abs(asin(x1*x2'./(sqrt((1 + sqrt(sum(x1.^2,2)))*(1+sqrt(sum(x2.^2,2)))'))));
+            x1 = [0*x1(:,1)+1 x1]./theta;
+            x2 = [0*x2(:,1)+1 x2]./theta;
+
+            d12 = x1*x2';
+
+            d11 = diag(x1*x1');
+            d22 = diag(x2*x2');
+
+            K = (2/pi)*asin((2*d12)./sqrt((1 + 2*d11)*(1 + 2*d22)'));
         end
 
     end

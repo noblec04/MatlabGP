@@ -6,9 +6,13 @@ if nargin<3
     rho = 28;
 end
 
+y1 = y(1);
+y2 = y(2);
+y3 = y(3);
+
 ydot = [
-    sigma * (y(2) - y(1));
-    y(1) * (rho - y(3)) - y(2);
-    y(1) * y(2) - beta * y(3)
+    sigma * (y2 - y1);
+    y1 * (rho - y3) - y2;
+    y1 * y2 - beta * y3
     ];
 end
