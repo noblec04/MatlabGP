@@ -109,7 +109,7 @@ while abs(err)>in.tol
     fv(i,:) = Fx;
 
     %calculate relative change in min function value
-    if i >1
+    if i >10
         err = abs(fv(i) - fv(i-1))/(abs(fv(i)) + abs(fv(i-1)));
     end
     

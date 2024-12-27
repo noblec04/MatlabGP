@@ -46,7 +46,7 @@ for i = 1:n
     end
 end
 
-contourf(xx2,xx1,YY);
+imagesc(xx2,xx1,YY);
 hold on
 shading interp
 utils.cmocean(in.cmap);

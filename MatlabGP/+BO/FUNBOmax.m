@@ -21,7 +21,10 @@ if nargout>1
 end
 
 sigf = sqrt(abs(varf));
-dsigf = dvarf./(2*sigf+eps);
+
+if nargout>1
+    dsigf = dvarf./(2*sigf+eps);
+end
 
 %Calculate beta value at x
 beta = (ys - muf + gamma*sigf)/sigf;

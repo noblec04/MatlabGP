@@ -13,7 +13,7 @@ if nargout>1
     muf = full(getvalue(muf));
 end
 
-sigf = sqrt(abs(varf));
+sigf = sqrt(abs(varf))';
 
 if nargout>1
     dsigf = getderivs(sigf);

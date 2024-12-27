@@ -3,8 +3,6 @@ classdef FF
     properties
         weight
         biases
-        sensitivity
-        out
     end
 
     methods
@@ -23,6 +21,7 @@ classdef FF
         function V = getHPs(obj)
 
             V = [obj.weight(:);obj.biases(:)];
+
         end
 
         function obj = setHPs(obj,V)

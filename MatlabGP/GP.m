@@ -372,19 +372,20 @@ classdef GP
             tklb = 0*tk0 + 0.0001;
             tkub = 0*tk0 + 30;
 
+            tx0 = [tm0 tk0];
             tlb = [tmlb tklb];
             tub = [tmub tkub];
 
             func = @(x) obj.loss(x);
 
             for i = 1:1
-                tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
+                %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',1000,'OptimalityTolerance',1*10^(-3));
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',2000,'OptimalityTolerance',1*10^(-3));
 
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
 
-                %[theta{i},val(i)] = VSGD(func,tx0,'lr',0.02,'lb',tlb,'ub',tub,'gamma',0.0001,'iters',2000,'tol',1*10^(-4));
+                %[theta{i},val(i),~,fv] = VSGD(func,tx0,'lr',0.2,'lb',tlb,'ub',tub,'gamma',0.01,'iters',2000,'tol',1*10^(-4));
 
             end
 
@@ -436,6 +437,18 @@ classdef GP
            
                 obj.alpha = obj.Kinv*(obj.Y - obj.mean.eval(obj.X));
             end
+
+        end
+
+        function [E,V] = NormalQuadrature(obj,mus,sigmas)
+
+            scale = obj.kernel.scale;
+
+            thetas = 1./sqrt(obj.kernel.thetas{1});
+
+            res = obj.Y - obj.mean.eval(obj.X);
+
+            [E,V] = utils.BayesQuadNormal(scale,thetas,obj.K,obj.X,res,mus,sigmas);
 
         end
 

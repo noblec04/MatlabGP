@@ -1,4 +1,4 @@
-function isoplot(kr,dim1,dim2,varargin)
+function isoplot(kr,X0,dim1,dim2,varargin)
 
 %   dim1 - Vary this dimension
 %   dim2 - plot along this dimension
@@ -34,11 +34,7 @@ n = in.nL;
 xx1 = linspace(a1,b1,n);
 xx2 = linspace(a2,b2,n);
 
-if isempty(in.mb)
-    mb = in.lb + 0.5*(in.ub - in.lb);
-else
-    mb = in.mb;
-end
+mb = X0;
 
 for i = 1:n
     for j = 1:n

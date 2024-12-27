@@ -1,9 +1,12 @@
-function [x,R] = argmax(FF,Z)
+function [x,R] = argmax(FF,Z,x0)
 
 lb = Z.lb_x;
 ub = Z.ub_x;
 
-x0 = lb + (ub-lb).*rand(1,length(lb));
+if nargin<3||isempty(x0)
+    x0 = lb + (ub-lb).*rand(1,length(lb));
+end
+
 try
     opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off');
 

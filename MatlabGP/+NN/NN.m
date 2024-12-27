@@ -97,6 +97,25 @@ classdef NN
             
         end
 
+        function [y,dy] = valueAndGrad(obj,V,x)
+
+            nV = length(V(:));
+
+            V = AutoDiff(V(:));
+
+            obj = obj.setHPs(V(:));
+
+            [yp] = obj.forward(x);
+
+            y = getvalue(yp);
+
+            ny = numel(y);
+
+            dy = getderivs(yp);
+            dy = reshape(full(dy),[ny nV]);
+
+        end
+
         function [e,de] = loss(obj,V,x,y)
 
             nV = length(V(:));
