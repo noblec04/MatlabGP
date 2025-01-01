@@ -95,7 +95,7 @@ classdef GP
             y = normrnd(mu,sqrt(sig));
         end
 
-        function [dy] = eval_grad(obj,x)
+        function [dy,dsig] = eval_grad(obj,x)
             
             [nn,nx] = size(x);
 
@@ -103,7 +103,13 @@ classdef GP
 
             y = obj.eval_mu(x);
 
-            dy = reshape(full(getderivs(y)),[nn,nx]);
+            dy = reshape(nonzeros(getderivs(y)),[nn,nx]);
+
+            if nargout>1
+                sig = obj.eval_var(x);
+
+                dsig = reshape(nonzeros(getderivs(sig)),[nn,nx]);
+            end
 
         end
 
@@ -132,51 +138,6 @@ classdef GP
 
             y = mvnrnd(obj.mean.eval(x) + ksf*obj.alpha,sig);
             
-        end
-
-        function [obj] = conditionOld(obj,X,Y,lb,ub)
-
-            obj.X = X;
-            obj.Y = Y;
-
-            if nargin<4
-                obj.lb_x = min(X);
-                obj.ub_x = max(X);
-            else
-                obj.lb_x = lb;
-                obj.ub_x = ub;
-            end
-
-            xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
-
-            obj.kernel.scale = 1;
-            [obj.K] = obj.kernel.build(xx,xx);
-
-            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
-
-            obj.Kinv = pinv(obj.K,eps);
-
-            res = obj.Y - obj.mean.eval(obj.X);
-
-            %obj.alpha = obj.K\(res);
-
-            sigp = sqrt(abs(res'*obj.Kinv*res./(size(obj.Y,1))));
-            %sigp = sqrt(abs(dot(res',obj.alpha)./(size(obj.Y,1))));
-
-            obj.kernel.scale = sigp^2;
-
-            %obj.K = obj.kernel.scale*obj.K;
-            %obj.Kinv = obj.Kinv/obj.kernel.scale;
-
-            [obj.K] = obj.kernel.build(xx,xx);
-
-            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn);
-            
-            obj.Kinv = pinv(obj.K);
-
-            %obj.alpha = obj.alpha/sigp^2;
-            obj.alpha = obj.Kinv*res;
-
         end
 
         function [obj] = condition(obj,X,Y,lb,ub)
@@ -233,8 +194,6 @@ classdef GP
 
             nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
-            %nll = nll;
-
         end
 
         function [loss,dloss] = loss(obj,theta)
@@ -263,6 +222,10 @@ classdef GP
         end
 
         function L = LOO(obj)
+
+            if isempty(obj.Kinv)
+                obj.Kinv = obj.K\eye(size(obj.K,1));
+            end
             L = 0.5*(obj.alpha.^2)./diag(obj.Kinv);% - 0.5*log(diag(obj.Kinv));
         end
 
@@ -407,35 +370,11 @@ classdef GP
             y(replicates,:) = [];
 
             if size(x,1)>0
-               
-                %{
-                    Using single point partitioned matrix inverse equation
-                    from Binois et. al. (2019) https://doi.org/10.1080/00401706.2018.1469433
-                    with ~500x500 matrix ~10x speedup
-                %}
-               
-                xx = (obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x);
-                xsc = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-               
-                [ks2] = obj.kernel.build(xsc,xx);
-               
-                c2 = obj.kernel.scale - dot(ks2,obj.Kinv*ks2');
-               
-                g = -1*obj.Kinv*ks2'/c2;
-               
-                gg = g*g';
-               
-                k11inv1 = obj.Kinv + (c2)*gg;
-               
-                k11inv2 = [k11inv1 g;
-                            g' 1/(c2)];
-                       
-                obj.Kinv = k11inv2;
-               
+
                 obj.X = [obj.X; x];
                 obj.Y = [obj.Y; y];
            
-                obj.alpha = obj.Kinv*(obj.Y - obj.mean.eval(obj.X));
+                obj = obj.condition(obj.X,obj.Y);
             end
 
         end

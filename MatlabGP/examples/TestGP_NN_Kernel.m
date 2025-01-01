@@ -44,12 +44,12 @@ Z = Z.train2();
 
 %%
 
-layers{1} = NN.FF(1,5);
-layers{2} = NN.FF(5,5);
+layers{1} = NN.FF(1,3);
+layers{2} = NN.FF(3,5);
 layers{3} = NN.FF(5,5);
 layers{4} = NN.FF(5,1);
 
-acts{1} = NN.RELU();
+acts{1} = NN.SWISH(0.8);
 acts{2} = NN.SWISH(0.8);
 acts{3} = NN.SWISH(1.2);
 

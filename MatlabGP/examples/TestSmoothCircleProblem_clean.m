@@ -6,11 +6,14 @@ clc
 lb = [-5 -5];
 ub = [5 5];
 
-xx = lb + (ub - lb).*lhsdesign(10000,2);
-yy = testFuncs.SmoothCircle(xx,5);
+x0 = [1 2];
+R = 5;
+
+xx = lb + (ub - lb).*lhsdesign(1000,2);
+yy = testFuncs.SmoothCircle(xx,x0,R);
 
 x1 = lb + (ub - lb).*lhsdesign(10,2);
-y1 = testFuncs.SmoothCircle(x1,5);
+y1 = testFuncs.SmoothCircle(x1,x0,R);
 
 
 %%
@@ -40,7 +43,7 @@ max(abs(yy - Z.eval_mu(xx)))./std(yy)
 
 xn = [];
 
-for jj = 1:500
+for jj = 1:200
     
     % for k = 1:10
     %     [xni(k,:),Rni(k)] = BO.argmax(@BO.UCB,Z);
@@ -49,7 +52,7 @@ for jj = 1:500
     %[~,in] = max(Rni);
     %xn = xni(in,:);
 
-    xn = BO.TrustRegion(Z);
+    xn = BO.TrustRegion2(Z);
 
     % figure(6)
     % clf(6)
@@ -57,13 +60,15 @@ for jj = 1:500
 
     [x1,flag] = utils.catunique(x1,xn,1e-6);
     if flag
-        y1 = [y1; testFuncs.SmoothCircle(xn,5)];
+        y1 = [y1; testFuncs.SmoothCircle(xn,x0,R)];
     end
 
     yh1 = Z.eval(xn);
 
     Z = Z.condition(x1,y1,lb,ub);
-    %Z = Z.train();
+    if jj<10
+        Z = Z.train();
+    end
 
     yh2 = Z.eval(xn);
 

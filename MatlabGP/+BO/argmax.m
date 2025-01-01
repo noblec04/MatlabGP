@@ -19,7 +19,6 @@ catch
     [x,R] = fmincon(@(x) FF(Z,x),x0,[],[],[],[],lb,ub,[],opts);
 
 end
-%[x,R] = VSGD(@(x) FF(Z,x),x0,'lr',0.03,'lb',lb,'ub',ub,'gamma',0.01,'iters',100,'tol',1*10^(-3));
 
 R = -1*R;
 

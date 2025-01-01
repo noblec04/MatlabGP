@@ -45,10 +45,13 @@ if in.CI
     
     FAlpha = 0*sig+1;
     
-    CI=bsxfun(@plus,mu,bsxfun(@times,sqrt(sig),norminv([0.025 0.975])));
-    CI_h=fill([xx';flipud(xx')],[CI(:,1);flipud(CI(:,2))],'k','FaceColor',in.color,'FaceAlpha',0.3,'EdgeColor','none','CData',[FAlpha; flipud(FAlpha)],'HandleVisibility','off');
+    for ii = 1:size(mu,2)
+        CI(:,1)=mu(:,ii) + 2*sqrt(sig(:,ii));
+        CI(:,2)=mu(:,ii) - 2*sqrt(sig(:,ii));
+        CI_h=fill([xx';flipud(xx')],[CI(:,1);flipud(CI(:,2))],'k','FaceColor',in.color,'FaceAlpha',0.3,'EdgeColor','none','CData',[FAlpha; flipud(FAlpha)],'HandleVisibility','off');
+        hold on
+    end
     colormap('gray')
-    hold on
     
 else
     CI_h = [];

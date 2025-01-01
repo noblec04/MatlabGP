@@ -1,4 +1,4 @@
-function plotSurf(kr,dim1,dim2,varargin)
+function plotSurf(kr,x0,dim1,dim2,varargin)
 
 %   dim1 - Vary this dimension
 %   dim2 - plot along this dimension
@@ -12,7 +12,6 @@ input.addOptional('ub',kr.ub_x,@isnumeric);     % Upper bound of plot
 input.addOptional('cmap','thermal');
 input.addOptional('LS','-');
 input.addOptional('nL',50);
-input.addOptional('mb',[]);
 input.addOptional('CI',true);
 input.addOptional('color','b');
 input.parse(varargin{:})
@@ -34,40 +33,36 @@ n = in.nL;
 xx1 = linspace(a1,b1,n);
 xx2 = linspace(a2,b2,n);
 
-if isempty(in.mb)
-    mb = in.lb + 0.5*(in.ub - in.lb);
-else
-    mb = in.mb;
-end
-
 for i = 1:n
     for j = 1:n
        
-        XX = mb;
+        XX = x0;
         XX(dim1) = xx1(i);
         XX(dim2) = xx2(j);
         
         Yj = kr.eval([XX;XX]);
-        YY(i,j) = Yj(1);
+        YY(i,j,:) = Yj(1,:);
         
         if in.CI
             
             [~,ej] = kr.eval([XX;XX]);
-            ee(i,j) = ej(1);
+            ee(i,j,:) = ej(1,:);
         end
         
     end
 end
-
-surf(xx2,xx1,YY,'FaceAlpha',0.9,'EdgeColor','none');
-hold on
+for i = 1:size(YY,3)
+    surf(xx2,xx1,YY(:,:,i),'FaceAlpha',0.9,'EdgeColor','none');
+    hold on
+end
 shading interp
 utils.cmocean(in.cmap);
 
 if in.CI 
-   
-    surf(xx2,xx1,YY + 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
-    surf(xx2,xx1,YY - 2*sqrt(abs(ee)),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
+   for i = 1:size(YY,3)
+        surf(xx2,xx1,YY(:,:,i) + 2*sqrt(abs(ee(:,:,i))),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
+        surf(xx2,xx1,YY(:,:,i) - 2*sqrt(abs(ee(:,:,i))),'FaceAlpha',0.3,'EdgeColor','none','FaceColor',in.color);
+   end
 end
 
 end

@@ -20,8 +20,8 @@ for ii = 1:nL
     xi = [];
     for kk = 1:nT
 
-        lbi = max(lb,xn(ib(kk),:)-ran/(1.5*ii));
-        ubi = min(ub,xn(ib(kk),:)+ran/(1.5*ii));
+        lbi = max(lb,xn(ib(kk),:)-ran/(3*ii));
+        ubi = min(ub,xn(ib(kk),:)+ran/(3*ii));
 
         xi = [xi;lbi + (ubi-lbi).*lhsdesign(nS,length(lb))];
     end

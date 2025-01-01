@@ -230,5 +230,73 @@ classdef NN
 
             obj = obj.setHPs(theta(:));
         end
+
+        function draw(obj)
+
+            nL = numel(obj.layers);
+
+            figure
+
+            minw = 0;
+            maxw = 0;
+
+            for i = 1:nL
+                
+                minw = min(minw,min(obj.layers{i}.weight(:)));
+                maxw = max(maxw,max(obj.layers{i}.weight(:)));
+
+            end
+
+            maxw = max(abs(minw),maxw);
+
+            n = 0;
+            for i = 1:nL
+                n=n+1;
+                subplot(1,2*nL,n)
+                imagesc(obj.layers{i}.weight)
+                colorbar
+                utils.cmocean('balance')
+                axis tight
+                axis equal
+                axis off
+                clim([-1*maxw maxw])
+
+                n = n+1;
+                subplot(1,2*nL,n)
+                plot(obj.layers{i}.biases,1:length(obj.layers{i}.biases))
+
+            end
+
+        end
+
+        function plotThroughput(obj,x)
+
+            nL = numel(obj.layers);
+
+            x0 = x;
+            %figure
+
+            for i = 1:nL-1
+
+                subplot(1,nL,i)
+                hold on
+                x = obj.layers{i}.forward(x);
+                x = obj.activations{i}.forward(x);
+                waterfall(x0',[1:size(x,2)]',x')
+                view(20,60)
+                axis square
+                grid on
+                box on
+            end
+
+            subplot(1,nL,nL)
+            hold on
+            x = obj.layers{nL}.forward(x);
+            plot(x0,x)
+            axis square
+            grid on
+            box on
+        end
+
     end
 end
