@@ -102,7 +102,7 @@ y1 = f1(x1);
 ```matlab:Code
 a = means.const(2) + means.linear(4);
 
-b = (kernels.Matern52(1,0.2) + kernels.EQ(0.2,0.4))*kernels.RQ(1,0.1);
+b = (kernels.Matern52(1,0.2) + kernels.EQ(0.2,0.4))*kernels.RQ(2,1,0.1);
 b.signn = 0.2;
 ```
 
