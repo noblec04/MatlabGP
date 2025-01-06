@@ -211,7 +211,7 @@ classdef GP
 
             detk = det(obj.K/obj.kernel.scale + diag(0*obj.K(:,1) + obj.kernel.signn));
 
-            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.01*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
+            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps);% + 0.01*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
             loss_nll = -1*loss_nll;
 
@@ -332,7 +332,7 @@ classdef GP
 
             tk0 = obj.kernel.getHPs();
 
-            tklb = 0*tk0 + 0.0001;
+            tklb = 0*tk0 - 30;
             tkub = 0*tk0 + 30;
 
             tx0 = [tm0 tk0];
@@ -341,10 +341,10 @@ classdef GP
 
             func = @(x) obj.loss(x);
 
-            for i = 1:1
+            for i = 1:3
                 %tx0 = tlb + (tub - tlb).*rand(1,length(tlb));
 
-                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',2000,'OptimalityTolerance',1*10^(-3));
+                opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Display','off','MaxFunctionEvaluations',2000);
 
                 [theta{i},val(i)] = fmincon(func,tx0,[],[],[],[],tlb,tub,[],opts);
 

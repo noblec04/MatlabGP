@@ -52,8 +52,7 @@ classdef NN
         function [y] = predict(obj,x)
 
             nl = numel(obj.layers);
-            
-            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
             y=x;
 
             for i = 1:nl-1
@@ -188,7 +187,7 @@ classdef NN
                 obj.ub_x = ub;
             end
 
-            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            %x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             tx0 = (obj.getHPs());
 

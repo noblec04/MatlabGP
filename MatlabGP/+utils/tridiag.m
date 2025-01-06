@@ -12,18 +12,18 @@ function y = tridiag( a, b, c, f )
 %  f must be a vector (row or column) of length n
 %  a, b, c must be vectors of length n (note that b(1) and c(n) are not used)
 % some additional information is at the end of the file
-n = length(f);
-v = zeros(n,1);   
+[n,nz] = size(f);
+v = zeros(n,nz);   
 y = v;
 w = a(1);
-y(1) = f(1)/w;
+y(1,:) = f(1,:)/w;
 for i=2:n
-    v(i-1) = c(i-1)/w;
-    w = a(i) - b(i)*v(i-1);
-    y(i) = ( f(i) - b(i)*y(i-1) )/w;
+    v(i-1,:) = c(i-1)./w;
+    w = a(i) - b(i)*v(i-1,:);
+    y(i,:) = ( f(i,:) - b(i)*y(i-1,:) )./w;
 end
 for j=n-1:-1:1
-   y(j) = y(j) - v(j)*y(j+1);
+   y(j,:) = y(j,:) - v(j,:).*y(j+1,:);
 end
 %  This is an implementation of the Thomas algorithm.  It does not overwrite a, b, c, f but 
 %  it does introduce a working n-vector (v).
