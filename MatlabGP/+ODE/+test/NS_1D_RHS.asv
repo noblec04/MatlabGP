@@ -9,13 +9,10 @@ end
 
 R = 8.314;
 
+
 rho = y(:,1);
 rhoU = y(:,2);
 E = y(:,3);
-
-% rho = utils.Filter(rho);
-% rhoU = utils.Filter(rhoU);
-% E = utils.Filter(E);
 
 rhoU(1) = 0;
 rhoU(end) = 0;
@@ -26,7 +23,9 @@ E(1) = E(2);
 rho(end) = rho(end-1);
 E(end) = E(end-1);
 
-
+%rho = utils.Filter(rho);
+%rhoU = utils.Filter(rhoU);
+%E = utils.Filter(E);
 
 U = rhoU./rho;
 
@@ -43,7 +42,7 @@ T = P./(R*rho);
 %T = utils.Filter(T);
 
 dT = utils.Grad(T,dx); 
-dT = utils.Filter(dT); 
+%dT = utils.Filter(dT); 
 
 dF1 = utils.Grad(rhoU,dx);
 dF2 = utils.Grad(rhoU2 + P,dx);
@@ -60,9 +59,8 @@ dS3 = utils.Grad((4/3)*mu*U.*dU + K*dT,dx);
 %dS3 = utils.Filter(dS3);
 
 ydot = [-dF1 dS2-dF2 dS3-dF3];
-%ydot = utils.Filter(ydot);
+ydot = utils.Filter(ydot);
 
-ydot(1,:) = 0;
-ydot(end,:) = 0;
+ydot(:)
 
 end

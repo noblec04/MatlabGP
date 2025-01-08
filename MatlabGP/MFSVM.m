@@ -1,5 +1,5 @@
 %{
-    Support Vector Machine.
+    Multi-fidelity Support Vector Machine.
 
     A kernel function can be created from which the SVM can be
     generated.
