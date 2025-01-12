@@ -1,5 +1,38 @@
 classdef VSGD
 
+    %{
+    Variational Stochastic Gradient Decent
+    Based on the paper:
+    @article{
+        chen2024variational,
+        title={Variational Stochastic Gradient Descent for Deep Neural Networks},
+        author={Chen, Haotian and Kuzina, Anna and Esmaeili, Babak and Tomczak, Jakub},
+        year={2024},
+    }
+
+    input:
+    F - anonymous function to minimize (must return value and gradient)
+    x0 - initial guess point
+    
+    Optional Input:
+    lb - lower bound (reflective lower bound has been added)
+    ub - upper bound (reflective upper bound has been added)
+    gamma - prior strength (belief about noise in gradients)
+    Kg - variance ratio
+    kappa1 - dist learning rate decay 1
+    kappa2 - dist learning rate decay 2
+    lr - learning rate
+    iters - maximum number of iterations
+    tol - target tolerance on minimum
+
+    Output:
+    x - optimum location
+    Fx - value at optimum
+    xv - trajectory 
+    fv - value at trajectory locations
+
+%}
+
     properties
 
         iter = 0;
@@ -20,6 +53,9 @@ classdef VSGD
         bg
         bgh
         mug
+
+        fv
+        xv
     end
 
     methods

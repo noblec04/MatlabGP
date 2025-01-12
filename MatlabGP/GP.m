@@ -211,7 +211,7 @@ classdef GP
 
             detk = det(obj.K/obj.kernel.scale + diag(0*obj.K(:,1) + obj.kernel.signn));
 
-            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps);% + 0.01*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
+            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
             loss_nll = -1*loss_nll;
 

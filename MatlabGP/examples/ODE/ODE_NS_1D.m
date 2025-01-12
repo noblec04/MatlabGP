@@ -2,34 +2,41 @@ clear
 clc
 
 gamma = 1.4;
-mu = 1e-1;
-K = 1e-1;
+mu = 5e-1;
+K = 5e-1;
 
-tf = 400;
+tf = 150;
 
-x = linspace(0,1,200)';
+xs0 = 2; %Shock location
+xi0 = 7; %Interface location
 
-ss = 0.5*erfc(100*(x-0.3));
+ls0 = 0.003; %Shock width
+li0 = 0.003; %interface width
 
-ss2 = 2 + (1 - 2)*0.5*erfc(10*(x-0.7));
+x = linspace(0,9,100)';
 
-dx = 0.8;
+ss = 0.5*erfc((x-xs0)/ls0);
+
+ss2 = 3 + (1 - 3)*0.5*erfc((x-xi0)/li0);
+
+dx = 2*0.5;
 
 rho = 0.125 + (1 - 0.125)*ss;
 
 rho = rho.*ss2;
 
-U = 0*x;
+U = 0*rho;
 P = 0.1 + (1.2 - 0.1)*ss;
 
 E = P./(gamma-1) + 0.5*rho.*U.^2;
 
 y0 = [rho rho.*U E];
 
+
 %%
 
 tic
-[tf, yf] = ODE.rkf45(@(t,y) ODE.test.NS_1D_RHS(t,y,mu,K,gamma,dx), y0, 0, tf, 0.003,1e-6);
+[tf, yf] = ODE.rkf45(@(t,y) ODE.test.NS_1D_RHS(t,y,mu,K,gamma,dx), y0, 0, tf, 0.03,1e-4);
 toc
 
 yfv=[];

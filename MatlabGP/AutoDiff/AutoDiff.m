@@ -182,6 +182,12 @@ classdef AutoDiff
             x.values = erf(x.values);
         end
 
+        function x = erfc(x)
+            tmp = 2*exp(-1*x.values.^2)/sqrt(pi);
+            x.derivatives = -1*AutoDiff.spdiag(tmp) * x.derivatives;
+            x.values = erfc(x.values);
+        end
+
         function x = gamma(x)
             tmp = gamma(x.values).*psi(x.values);
             x.values = gamma(x.values);

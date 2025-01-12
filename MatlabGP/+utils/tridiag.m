@@ -13,7 +13,7 @@ function y = tridiag( a, b, c, f )
 %  a, b, c must be vectors of length n (note that b(1) and c(n) are not used)
 % some additional information is at the end of the file
 [n,nz] = size(f);
-v = zeros(n,nz);   
+v = zeros(n,nz,'like',f);   
 y = v;
 w = a(1);
 y(1,:) = f(1,:)/w;
