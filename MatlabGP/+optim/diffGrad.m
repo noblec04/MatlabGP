@@ -1,4 +1,9 @@
-classdef Adam
+classdef diffGrad
+
+    %{
+        Implementation of diffGrad:
+            "diffGrad: An Optimization Method for Convolutional Neural Networks"
+    %}
 
     properties
 
@@ -16,12 +21,12 @@ classdef Adam
         
         mt
         vt
-        
+        dFt = 0;
     end
 
     methods
 
-        function obj = Adam(x0,varargin)
+        function obj = diffGrad(x0,varargin)
 
             input=inputParser;
             input.KeepUnmatched=true;
@@ -62,6 +67,12 @@ classdef Adam
             
             mth = obj.mt./(1 - obj.beta1);
             vth = obj.vt./(1 - obj.beta2);
+
+            dG = obj.dFt - dF;
+
+            obj.dFt = dF;
+
+            DFC = 1./(1 + exp(-1*abs(dG)));
             
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,7 +80,7 @@ classdef Adam
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             %update parameters
-            x = x - obj.lr*mth./(sqrt(vth) + eps );
+            x = x - obj.lr*DFC.*mth./(sqrt(vth) + eps );
 
             %reflective upper bound
             if ~isempty(obj.ub)

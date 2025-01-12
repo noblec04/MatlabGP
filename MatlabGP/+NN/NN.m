@@ -194,7 +194,7 @@ classdef NN
             func = @(V) obj.loss(V,x,y);
 
 
-            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',3000,'MaxIterations',3000,'Display','final');
+            opts = optimoptions('fmincon','SpecifyObjectiveGradient',true,'MaxFunctionEvaluations',500,'MaxIterations',500,'Display','off');
             [theta,fval] = fmincon(func,tx0,[],[],[],[],[],[],[],opts);
 
             %[theta,fval,xv,fv] = VSGD(func,tx0,'lr',0.01,'gamma',0.01,'iters',1000,'tol',1*10^(-7));

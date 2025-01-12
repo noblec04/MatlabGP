@@ -3,15 +3,15 @@ clear
 close all
 clc
 
-xx = [0;lhsdesign(10,1);1];
-yy = normrnd(forr(xx,0),0*forr(xx,0));
+xx = [0;lhsdesign(30,1);1];
+yy = normrnd(forr(xx,0),0*forr(xx,0)+0.5);
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FAN(1,3,1);
-layers{2} = NN.FAN(3,3,1);
-layers{3} = NN.FF(3,3);
+layers{1} = NN.FAN(1,10,4);
+layers{2} = NN.FAN(10,10,4);
+layers{3} = NN.FF(10,3);
 
 acts{1} = NN.SWISH(1.2);
 acts{2} = NN.SWISH(0.8);
@@ -26,7 +26,7 @@ tic
 
 V = nnet.getHPs();
 
-opt = optim.diffGrad(V,'lr',0.1);
+opt = optim.Adam(V,'lr',0.5);
 
 for i = 1:500
     
@@ -49,22 +49,50 @@ toc
 
 %%
 
+V1 = V;
+NUTS1 = utils.NUTS(0.01,3);
+
 tic
-nnet2 = nnet.train(xx,yy,0,1);
+for i = 1:100
+
+    [V1, alpha_ave, logp, grad] = NUTS1.step(@(x) nnet.loss(x,xx,yy),V1);
+
+    Vii(:,i) = V1;
+    logpi(i) = logp;
+
+end
 toc
 
+%%
 
-yp2 = nnet.predict(xmesh);
+for i = 1:100
+    nnet2 = nnet.setHPs(Vii(:,i));
+    yp2(:,:,i) = nnet2.predict(xmesh);
+end
 
-yp3 = nnet2.predict(xmesh);
+figure
+hold on
+plot(xmesh,squeeze(mean(yp2,3)))
+plot(xmesh,squeeze(mean(yp2,3)-2*sqrt(std(yp2,[],3))),':')
+plot(xmesh,squeeze(mean(yp2,3)+2*sqrt(std(yp2,[],3))),':')
+plot(xx,yy,'x')
+
+figure
+hold on
+for i = 1:100
+    plot(xmesh,squeeze(yp2(:,1,i)))
+    plot(xmesh,squeeze(yp2(:,2,i)))
+    plot(xmesh,squeeze(yp2(:,3,i)))
+end
 
 %%
+
+yp3 = nnet.predict(xmesh);
 
 figure
 plot(xmesh,ymesh)
 hold on
-plot(xmesh,yp2,':')
-plot(xmesh,yp3,'--')
+plot(xmesh,yp3,':')
 plot(xx,yy,'x')
 
 %%

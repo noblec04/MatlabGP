@@ -21,7 +21,7 @@ classdef FAN
             y1 = cos(obj.weight1*x')';
             y2 = sin(obj.weight1*x')';
 
-            y3 = tanh(obj.weight2*x' + obj.biases)';
+            y3 = (obj.weight2*x' + obj.biases)';
 
             y = [y1 y2 y3];
 
