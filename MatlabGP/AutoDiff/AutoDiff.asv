@@ -785,8 +785,6 @@ classdef AutoDiff
 
         function [U, S, V] = svd(x)
 
-            % "Differentiating the SVD" - James Townsend, Aug 10 2016
-
             [Uv,Sv,Vv] = svd(x.values);
 
             Svv = diag(Sv);
@@ -817,13 +815,13 @@ classdef AutoDiff
 
                 dxi = squeeze(dx(:,:,i));
                 
-                dUi = Uv*(F.*(Uv'*dxi*Vv*Sv + Sv*Vv'*dxi'*Uv)) + (Im - Uv*Uv')*dxi*Vv*Svinv;
+                dUi = Uv*(F.*(Uv*dxi*Vv*Sv + Sv*Vv'*dxi'*Uv)) + (Im - Uv*Uv')*dxi*Vv*Svinv;
                 dUm(:,i) = dUi(:);
 
-                dSi = Im.*(Uv'*dxi*Vv);
-                dSm(:,i) = dSi(:);
+                dSi = Im.*Uv'*dxi*Vv;
+                dSm(:,i) = dSi()
 
-                dVi = Vv*(F.*(Sv*Uv'*dxi*Vv + Vv'*dxi'*Uv*Sv)) + (Im - Vv*Vv')*dxi'*Uv*Svinv;
+                dVi = Vv*(F.*(Sv*Uv*dxi*Vv + Vv'*dxi'*Uv*Sv)) + (Im - Vv*Vv')*dxi*Uv*Svinv;
                 dVm(:,i) = dVi(:);
 
 
@@ -831,16 +829,11 @@ classdef AutoDiff
 
             U.values = Uv;
             U.derivatives = dUm;
+
             U = AutoDiff(U);
 
-            S.values = Sv;
-            S.derivatives = dSm;
-            S = AutoDiff(S);
 
-            V.values = Vv;
-            V.derivatives = dVm;
-            V = AutoDiff(V);
-
+            %error('not coded yet, could look at the eig implementation')
         end
 
         function n = numel(x)

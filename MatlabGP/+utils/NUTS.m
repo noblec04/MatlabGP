@@ -24,8 +24,8 @@ classdef NUTS
         function [theta, alpha_ave, logp, grad] = step(obj,f,theta0)
 
             [logp0, grad0] = f(theta0);
-            logp0 = -1*logp0;
-            grad0 = -1*grad0;
+            %logp0 = -1*logp0;
+            %grad0 = -1*grad0;
 
             % Resample momenta.
             r0 = randn(size(theta0));

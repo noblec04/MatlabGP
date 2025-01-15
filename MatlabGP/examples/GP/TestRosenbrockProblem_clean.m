@@ -3,7 +3,7 @@ clear
 close all
 clc
 
-D = 2;
+D = 4;
 nF = 3;
 
 lb = -2*ones(1,D);
@@ -61,15 +61,15 @@ dec = RL.TS(30,3);
 %%
 figure
 hold on
-utils.plotSurf(Z{1},1,2,'color','r','CI',false)
-utils.plotSurf(Z{2},1,2,'color','b','CI',false)
-utils.plotSurf(Z{3},1,2,'color','g','CI',false)
+utils.plotSurf(Z{1},lb,1,2,'color','r','CI',false)
+utils.plotSurf(Z{2},lb,1,2,'color','b','CI',false)
+utils.plotSurf(Z{3},lb,1,2,'color','g','CI',false)
 
 %%
 
 figure
 hold on
-utils.plotSurf(MF,1,2)
+utils.plotSurf(MF,lb,1,2)
 
 %%
 
@@ -85,8 +85,8 @@ C = [50 30 1];%20
 
 for jj = 1:200
    
-    %[xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
-    [xn,Rn] = BO.argmax(@BO.maxVAR,MF);
+    [xn,Rn] = BO.argmax(@BO.MFSFDelta,MF);
+    %[xn,Rn] = BO.argmax(@BO.maxVAR,MF);
 
     siggn(1) = abs(MF.expectedReward(xn,1))/(C(1));
     siggn(2) = abs(MF.expectedReward(xn,2))/(C(2));
@@ -162,31 +162,31 @@ for jj = 1:200
     % box on
     % grid on
 
-    figure(3)
-    clf(3)
-    hold on
-    plot(cost,R2z)
-    plot(cost,R2MF)
-
-    figure(4)
-    clf(4)
-    hold on
-    plot(cost,RMAEz)
-    plot(cost,RMAEMF)
-    plot(cost,maxeMF)
-
-    figure(5)
-    clf(5)
-    hold on
-    plot(cost,Rie)
-    plot(cost,Ri)
-
-    figure(6)
-    clf(6)
-    hold on
-    dec.plotDists
-
-    drawnow
+    % figure(3)
+    % clf(3)
+    % hold on
+    % plot(cost,R2z)
+    % plot(cost,R2MF)
+    % 
+    % figure(4)
+    % clf(4)
+    % hold on
+    % plot(cost,RMAEz)
+    % plot(cost,RMAEMF)
+    % plot(cost,maxeMF)
+    % 
+    % figure(5)
+    % clf(5)
+    % hold on
+    % plot(cost,Rie)
+    % plot(cost,Ri)
+    % 
+    % figure(6)
+    % clf(6)
+    % hold on
+    % dec.plotDists
+    % 
+    % drawnow
 
     if RMAEMF(jj)<0.1
         break

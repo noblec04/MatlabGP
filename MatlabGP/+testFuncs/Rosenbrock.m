@@ -1,4 +1,8 @@
-function [y] = Rosenbrock(x,i)
+function [y,dy] = Rosenbrock(x,i)
+
+if nargout==2
+    x=AutoDiff(x);
+end
 
 switch i
     case 1
@@ -44,6 +48,9 @@ switch i
         y = (y1 - 4 - sum)./(10 + sum2);%(1/7210)*
 end
 
-
+if nargout==2
+    dy = getderivs(y);
+    y = getvalue(y);
+end
 
 end
