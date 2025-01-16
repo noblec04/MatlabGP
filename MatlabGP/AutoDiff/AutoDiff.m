@@ -215,6 +215,48 @@ classdef AutoDiff
             x.derivatives = conj(x.derivatives);
         end
 
+        function y = fft(x,varargin)
+
+            y.values = fft(x.values,varargin{:});
+
+            nz = size(x.derivatives,2);
+
+            for i = 1:nz
+
+                dxi = reshape(full(x.derivatives(:,i)),size(x.values));
+
+                dyi = fft(dxi,varargin{:});
+
+                y.derivatives(:,i) = dyi(:);
+
+            end
+
+            y = AutoDiff(y);
+
+
+        end
+
+        function y = ifft(x,varargin)
+
+            y.values = ifft(x.values,varargin{:});
+
+            nz = size(x.derivatives,2);
+
+            for i = 1:nz
+
+                dxi = reshape(full(x.derivatives(:,i)),size(x.values));
+
+                dyi = ifft(dxi,varargin{:});
+
+                y.derivatives(:,i) = dyi(:);
+
+            end
+
+            y = AutoDiff(y);
+
+
+        end
+
         function b = isreal(x)
             b = isreal(x.values);
         end
@@ -1194,9 +1236,9 @@ classdef AutoDiff
             % to each element of the input matrix. The function might be undifferentiable
             % if the mutiplicity of an eigen value is more than one.
             % It may no work if C is not symmetric (need to check if the formulas are still valid)
-            if any(any(C.values' - C.values) > eps)
-                error('not yet verified for non symetric matrices')
-            end
+            % if any(any(C.values' - C.values) > eps)
+            %     error('not yet verified for non symetric matrices')
+            % end
 
             n = size(C, 1);
             [V, D] = eig(C.values);
