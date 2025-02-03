@@ -181,6 +181,41 @@ classdef MFGP
             
         end
 
+        function [E,V] = BayesQuad(obj)
+            
+                nF = numel(obj.GPs);
+
+                [E,V] = obj.GPs{nF}.BayesQuad();
+                [Ed,Vd] = obj.Zd{nF}.BayesQuad();
+
+                E = obj.rho{nF}*E + Ed;
+                V = (obj.rho{nF}^2)*V + Vd;
+
+
+                for i = nF-1:-1:2
+
+                    [Ed,Vd] = obj.Zd{i}.BayesQuad();
+
+                    E = obj.rho{i}*E + Ed;
+                    V = (obj.rho{i}^2)*V + Vd;
+
+                end
+
+        end
+
+        function y = SquaredCorrelation(obj,x)
+
+            nF = numel(obj.GPs);
+
+            y = (obj.rho{nF}^2)*obj.GPs{nF}.SquaredCorrelation(x) + obj.Zd{nF}.SquaredCorrelation(x);
+
+            for i = nF-1:-1:2
+                
+                y = (obj.rho{i}^2)*y + obj.Zd{i}.SquaredCorrelation(x);
+            end
+        
+        end
+
         function warpedobj = exp(obj)
 
            warpedobj = warpGP(obj,'exp');

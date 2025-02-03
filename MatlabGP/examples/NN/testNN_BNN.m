@@ -1,18 +1,18 @@
 
-clear all
+clear
 close all
 clc
 
-xx = [0;lhsdesign(100,1);1];
-yy = normrnd(forr(xx,0),0.01*forr(xx,0).^2+0.5);
-ee = 0.01*forr(xx,0).^2+0.1;
+xx = [0;lhsdesign(500,1);1];
+yy = normrnd(forr(xx,0),0.04*forr(xx,0).^2+0.5);
+ee = 0.04*forr(xx,0).^2+0.5;
 
 xmesh = linspace(0,1,100)';
 ymesh = forr(xmesh,0);
 
-layers{1} = NN.FF(1,3);
-layers{2} = NN.FF(3,3);
-layers{3} = NN.FF(3,2);
+layers{1} = NN.FF(1,5);
+layers{2} = NN.FF(5,5);
+layers{3} = NN.FF(5,2);
 
 acts{1} = NN.SWISH(1);
 acts{2} = NN.SNAKE(1);
@@ -26,6 +26,33 @@ nnet = NN.NN(layers,acts,lss);
 tic
 [nnet2,fval] = nnet.train(xx,yy);%,xv,fv %[yy; ee]
 toc
+
+%%
+% 
+% tic
+% 
+% V = nnet.getHPs();
+% 
+% opt = optim.diffGrad(V,'lr',0.1);
+% 
+% for i = 1:500
+% 
+%     Vi(:,i) = V;
+% 
+%     [e(i),dV] = nnet.loss(V,xx,yy);
+%     [opt,V] = opt.step(V,dV);
+% 
+%     figure(1)
+%     clf(1)
+%     plot(e)
+%     set(gca,'yscale','log')
+%     set(gca,'xscale','log')
+% 
+% end
+% 
+% nnet2 = nnet.setHPs(V);
+% 
+% toc
 
 %%
 yp2 = nnet2.predict(xmesh);

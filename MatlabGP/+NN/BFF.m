@@ -14,9 +14,9 @@ classdef BFF
 
         function obj = BFF(in,out)
             obj.weight_mu = normrnd(zeros(out,in),sqrt(1/in));
-            obj.weight_sig = 0.001*log(abs(normrnd(zeros(out,in),sqrt(1/in))));
+            obj.weight_sig = 0.01*log(abs(normrnd(zeros(out,in),sqrt(1/in))));
             obj.biases_mu = normrnd(zeros(out,1),sqrt(1/in));
-            obj.biases_sig = 0.001*log(abs(normrnd(zeros(out,1),sqrt(1/in))));
+            obj.biases_sig = 0.01*log(abs(normrnd(zeros(out,1),sqrt(1/in))));
 
             obj.out = out;
             obj.in = in;
@@ -24,8 +24,8 @@ classdef BFF
 
         function [y] = forward(obj,x)
             
-            epsilon_matrix = normrnd(zeros(obj.out,obj.in),ones(obj.out,obj.in));
-            epsilon_vec = normrnd(zeros(obj.out,1),ones(obj.out,1));
+            epsilon_matrix = 0.01*normrnd(zeros(obj.out,obj.in),ones(obj.out,obj.in));
+            epsilon_vec = 0.01*normrnd(zeros(obj.out,1),ones(obj.out,1));
 
             weight = obj.weight_mu + epsilon_matrix.*exp(obj.weight_sig);
             biases = obj.biases_mu + epsilon_vec.*exp(obj.biases_sig);

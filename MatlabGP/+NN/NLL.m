@@ -8,6 +8,9 @@ classdef NLL
 
         function obj = NLL(dist)
 
+            if nargin==0
+                dist = 'normal';
+            end
             obj.dist = dist;
 
         end

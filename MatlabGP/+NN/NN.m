@@ -51,6 +51,8 @@ classdef NN
 
         function [y] = predict(obj,x)
 
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
             nl = numel(obj.layers);
 
             y=x;
@@ -119,7 +121,9 @@ classdef NN
 
             nV = length(V(:));
 
-            V = AutoDiff(V(:));
+            if nargout == 2
+                V = AutoDiff(V(:));
+            end
 
             obj = obj.setHPs(V(:));
 
@@ -129,9 +133,13 @@ classdef NN
 
             e1 = sum(eout,2);
 
-            e = getvalue(e1);
-            de = getderivs(e1);
-            de = reshape(full(de),[1 nV]);
+            if nargout == 2
+                e = getvalue(e1);
+                de = getderivs(e1);
+                de = reshape(full(de),[1 nV]);
+            else
+                e = e1;
+            end
 
         end
 
@@ -187,7 +195,7 @@ classdef NN
                 obj.ub_x = ub;
             end
 
-            %x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             tx0 = (obj.getHPs());
 
@@ -271,6 +279,8 @@ classdef NN
         function plotThroughput(obj,x)
 
             nL = numel(obj.layers);
+
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             x0 = x;
             %figure

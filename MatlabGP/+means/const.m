@@ -11,5 +11,11 @@ classdef const<means.means
             dy = 0*x(:,1);
         end
 
+        function I = integrate(~,lb,ub,theta)
+
+            I = theta*prod(ub - lb); 
+
+        end
+
     end
 end

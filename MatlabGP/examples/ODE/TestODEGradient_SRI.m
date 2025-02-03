@@ -3,7 +3,7 @@ clear
 close all
 clc
 
-A = AutoDiff([0.4 0.04 995 5 0]);
+A = AutoDiff([0.4 0.04 995 1 0]);
 
 tic
 [tf, yf] = ODE.rkf45(@(t,y) ODE.test.SIRRHS(t,y,A(1),A(2)), [A(3);A(4);A(5)], 0, 80, 0.01,1e-9, A);

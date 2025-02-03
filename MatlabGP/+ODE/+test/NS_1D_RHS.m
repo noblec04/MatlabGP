@@ -33,7 +33,6 @@ P = (gamma-1)*(E - 0.5*rhoU2);
 T = P./(R*rho);
 
 dT = utils.Grad(T,dx); 
-dT = utils.Filter(dT); 
 
 dF1 = utils.Grad(rhoU,dx);
 dF2 = utils.Grad(rhoU2 + P,dx);

@@ -2,7 +2,7 @@
 clear
 clc
 
-A = AutoDiff([1 1 0]);
+A = AutoDiff([1;0]);
 
 %{
 tic
@@ -13,7 +13,7 @@ L = sum((yf{end} - [1;1]).^2);
 %}
 
 tic
-[tf, yf] = ODE.feuler(@(t,y) ODE.test.VanDerPolRHS(t,y,A(1)), [A(2);A(3)], 0, 10, 0.1, A);
+[tf, yf] = ODE.rkf45(@(t,y) ODE.test.VanDerPolRHS(t,y,1), [A(1);A(2)], 0, 10, 0.1,1e-9, A);
 
 L = sum((yf{end} - [1;1]).^2);
 toc

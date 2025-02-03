@@ -378,8 +378,8 @@ classdef GP
             end
 
         end
-
-        function [E,V] = NormalQuadrature(obj,mus,sigmas)
+        
+        function [E,V] = NormalQuad(obj,mus,sigmas)
 
             scale = obj.kernel.scale;
 
@@ -389,6 +389,35 @@ classdef GP
 
             [E,V] = utils.BayesQuadNormal(scale,thetas,obj.K,obj.X,res,mus,sigmas);
 
+        end
+
+        function [E,V] = BayesQuad(obj)
+
+            theta_m = obj.mean.getHPs();
+            theta_k = obj.kernel.getHPs();
+            kmm = obj.kernel.qKm(obj.X,obj.lb_x,obj.ub_x,theta_k);
+            km = obj.kernel.qK(obj.X,obj.lb_x,obj.ub_x,theta_k);
+            kv = obj.kernel.qKq(obj.lb_x,obj.ub_x,theta_k);
+            
+            E = obj.mean.integrate(obj.lb_x,obj.ub_x,theta_m) + dot(kmm,obj.alpha);
+            V = kv - dot(km,obj.K\km);
+
+        end
+
+        function sc = SquaredCorrelation(obj,x)
+
+            [~,Vi] = obj.BayesQuad();
+
+            sigy = obj.eval_var(x);
+
+            theta_k = obj.kernel.getHPs();
+            qKx = obj.kernel.qK(x,obj.lb_x,obj.ub_x,theta_k); 
+            qKX = obj.kernel.qK(obj.X,obj.lb_x,obj.ub_x,theta_k);
+
+            KXx = obj.kernel.build(obj.X,x);
+
+            sc = ((qKx - dot(qKX,obj.K\KXx)).^2)./(Vi^2);;%*sigy);
+        
         end
 
         %Operator Overloading

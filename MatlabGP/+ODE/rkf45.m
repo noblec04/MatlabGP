@@ -42,7 +42,7 @@ while t < tf
     Z = yn + 16/135*k1 + 6656/12825*k3 + 28561/56430*k4 - 9/50*k5 + ...
         2/55*k6;   
     
-    E = norm(Y-Z,'fro'); % local error estimation    
+    E = norm(Y-Z); % local error estimation    
     h = 0.9 * h * (TOL/E)^(1/5); 
     
     y{k} = Y;

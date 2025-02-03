@@ -34,9 +34,9 @@ for j = 1:iters
     f(n-1,:) = .5*F(n-1,:) + .25*(F(n,:)+F(n-2,:)); 
     f(n,:) = F(n,:);
 
-    a = 0*F + 1;
-    b = 0*F + alpha;
-    c = 0*F + alpha;
+    a = 1*ones(n,1);
+    b = alpha*ones(n,1);
+    c = alpha*ones(n,1);
 
     b(1:4) = 0;
     c(1:4) = 0;
@@ -44,7 +44,13 @@ for j = 1:iters
     b(n-3:n) = 0;
     c(n-3:n) = 0;
 
-    F = utils.tridiag( a, b, c, f);
+    if isa(f,'AutoDiff')
+        F1.values = utils.tridiag( a, b, c, getvalue(f));
+        F1.derivatives = f.derivatives;
+        F = AutoDiff(F1);
+    else
+        F = utils.tridiag( a, b, c, f);
+    end
 end
 
 end
