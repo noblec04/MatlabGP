@@ -1,8 +1,8 @@
 %{
-    Proper Orthogonal Decomposition
+    Dynamic Mode Decomposition
 %}
 
-classdef POD
+classdef DMD
     
     properties
         Y
@@ -21,7 +21,7 @@ classdef POD
 
     methods
 
-        function obj = POD(nmodes)
+        function obj = DMD(nmodes)
             
             obj.nmodes = nmodes;
 
@@ -37,7 +37,27 @@ classdef POD
 
             obj.Y = X;
 
-            L = obj.Y(:,:);
+            L = obj.Y(:,:)';
+
+            L1 = L(:,1:end-1);
+            L2 = L(:,2:end);
+
+            [U, S, V]=svd(L1,0);
+
+            E = diag(S).^2;
+
+            U=U(:,1:obj.nmodes);
+            V=V(:,1:obj.nmodes);
+            S=S(1:obj.nmodes,1:obj.nmodes);
+
+            A_tilde=U'*L2*V/S;
+
+            [eVecs, Eigenvalues] = eig(A_tilde);
+
+            Eigenvectors=Y*V*inv(S)*eVecs;
+            Eigenvalues=diag(Eigenvalues);
+
+            ModeAmplitudes=Eigenvectors\X(:,1);
 
             [obj.phi,obj.score,~,~,obj.explained,obj.mu] = pca(L);
 

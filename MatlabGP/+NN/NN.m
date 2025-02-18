@@ -10,6 +10,9 @@ classdef NN
 
         lb_x
         ub_x
+
+        lb_y = 0;
+        ub_y = 1;
     end
 
     methods
@@ -64,6 +67,8 @@ classdef NN
 
             [y] = obj.layers{nl}.forward(y);
 
+            y = obj.lb_y + (obj.ub_y - obj.lb_y).*y;
+
         end
 
         function V = getHPs(obj)
@@ -106,7 +111,11 @@ classdef NN
 
             obj = obj.setHPs(V(:));
 
+            x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+
             [yp] = obj.forward(x);
+
+            y = obj.lb_y + (obj.ub_y - obj.lb_y).*y;
 
             y = getvalue(yp);
 
@@ -195,7 +204,11 @@ classdef NN
                 obj.ub_x = ub;
             end
 
+            obj.lb_y = min(y);
+            obj.ub_y = max(y);
+
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            y = (y - obj.lb_y)./(obj.ub_y - obj.lb_y);
 
             tx0 = (obj.getHPs());
 
@@ -223,7 +236,11 @@ classdef NN
                 obj.ub_x = ub;
             end
 
+            obj.lb_y = min(y);
+            obj.ub_y = max(y);
+
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            y = (y - obj.lb_y)./(obj.ub_y - obj.lb_y);
 
             tx0 = (obj.getHPs());
 

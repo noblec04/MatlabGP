@@ -1,5 +1,5 @@
 %{
-    Gaussian Process
+    Heteroscedastic Gaussian Process
     
     An exact Gaussian Process with Gaussian Likelihood.
 
@@ -14,11 +14,12 @@
 
 %}
 
-classdef GP
+classdef HGP
     
     properties
         kernel
         mean
+        kre
 
         K
         L
@@ -28,6 +29,7 @@ classdef GP
 
         X
         Y
+        E
 
         lb_x=0;
         ub_x=1;
@@ -35,12 +37,13 @@ classdef GP
 
     methods
 
-        function obj = GP(mean,kernel)
+        function obj = HGP(mean,kernel)
             if isempty(mean)
                 mean = means.zero;
             end
             obj.mean = mean;
             obj.kernel = kernel;
+            obj.kre = GP(mean,kernel);
         end
 
         function [y,sig] = eval(obj,x)
@@ -55,7 +58,12 @@ classdef GP
             if nargout>1
 
                 v = dot(ksf',(obj.K\ksf'))';
-                sig = (abs(obj.kernel.scale - v));
+
+                [mug,sigg] = obj.kre.eval(x);
+
+                sigsa = exp(mug + sigg/2);
+
+                sig = (abs(obj.kernel.scale - v) + sigsa);
 
                 %sig = abs(obj.kernel.scale  + obj.kernel.signn - dot(ksf',obj.Kinv*ksf')');
             end
@@ -79,13 +87,13 @@ classdef GP
 
             ksf = obj.kernel.build(xs,xx);
 
-            % v = obj.L\ksf';
-            % sig = abs(obj.kernel.scale - sum(v.^2,1))';
-
             v = dot(ksf',(obj.K\ksf'));
-            sig = abs(obj.kernel.scale - v);
 
-            %sig = abs(obj.kernel.scale - dot(ksf',obj.Kinv*ksf')');
+            [mug,sigg] = obj.kre.eval(x);
+
+            sigsa = exp(mug + sigg/2);
+
+            sig = abs(obj.kernel.scale - v) + sigsa;
 
         end
 
@@ -136,14 +144,19 @@ classdef GP
 
             sig = kss + diag(0*x(:,1)+obj.kernel.signn) - ksf*obj.Kinv*ksf' + 5*eps*eye(size(x,1));
 
-            y = mvnrnd(obj.mean.eval(x) + ksf*obj.alpha,sig);
+            [mug,sigg] = obj.kre.eval(x);
+
+            sigsa = exp(mug + sigg/2);
+
+            y = mvnrnd(obj.mean.eval(x) + ksf*obj.alpha,sig+sigsa);
             
         end
 
-        function [obj] = condition(obj,X,Y,lb,ub)
+        function [obj] = condition(obj,X,Y,E,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
+            obj.E = E;
 
             if nargin<4
                 obj.lb_x = min(X);
@@ -155,20 +168,22 @@ classdef GP
 
             xx = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
-            obj.kernel.scale = 1;
+            obj.kernel.scale = std(obj.Y)/2;
             [obj.K] = obj.kernel.build(xx,xx);
-            obj.K = obj.K + diag(0*xx(:,1)+obj.kernel.signn) + (1e-14)*eye(size(xx,1));
+            obj.K = obj.K + diag(obj.E + obj.kernel.signn) + (1e-14)*eye(size(xx,1));
 
             res = obj.Y - obj.mean.eval(obj.X);
 
             obj.alpha = obj.K\res;
 
-            sigp = sqrt(abs(res'*obj.alpha./(size(obj.Y,1))));
+            % sigp = sqrt(abs(res'*obj.alpha./(size(obj.Y,1))));
+            % 
+            % obj.kernel.scale = sigp^2;
+            % 
+            % obj.K = obj.kernel.scale*obj.K;
+            % obj.alpha = obj.alpha/sigp^2;
 
-            obj.kernel.scale = sigp^2;
-
-            obj.K = obj.kernel.scale*obj.K;
-            obj.alpha = obj.alpha/sigp^2;
+            obj.kre = obj.kre.condition(X,log(E+eps),obj.lb_x,obj.ub_x);
 
         end
 
@@ -182,17 +197,21 @@ classdef GP
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
 
-            [obj] = obj.condition(obj.X,obj.Y);
+            [obj] = obj.condition(obj.X,obj.Y,obj.E,obj.lb_x,obj.ub_x);
 
-            detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
+            [mu,sig] = obj.eval(obj.X);
+            
+            nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y - mu).^2)./sig)  + 1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),2,2)));
 
-            if isnan(detk)||isinf(detk)
-                detk = eps;
-            end
-
-            %nll = sum(obj.LOO());
-
-            nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
+            % detk = det(obj.K + diag(0*obj.K(:,1) + obj.kernel.signn));
+            % 
+            % if isnan(detk)||isinf(detk)
+            %     detk = eps;
+            % end
+            % 
+            % %nll = sum(obj.LOO());
+            % 
+            % nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 0.1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
         end
 
@@ -209,13 +228,17 @@ classdef GP
 
             obj = obj.setHPs(theta);
 
-            [obj] = obj.condition(obj.X,obj.Y);
+            [obj] = obj.condition(obj.X,obj.Y,obj.E,obj.lb_x,obj.ub_x);
 
-            detk = det(obj.K/obj.kernel.scale + diag(0*obj.K(:,1) + obj.kernel.signn));
+            [mu,sig] = obj.eval(obj.X);
+            
+            loss_nll = sum(-log(2*pi*sqrt(abs(sig))) - ((obj.Y - mu).^2)./sig)  + 1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
 
-            loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
-
-            loss_nll = -1*loss_nll;
+            % detk = det(obj.K/obj.kernel.scale + diag(0*obj.K(:,1) + obj.kernel.signn));
+            % 
+            % loss_nll = -0.5*log(sqrt(obj.kernel.scale)) - 0.5*log(abs(detk)+eps) + 1*sum(log(eps+gampdf(abs(theta(ntm+1:end)),1.1,0.5)));
+            % 
+            % loss_nll = -1*loss_nll;
 
             if nargout==2
                 loss = getvalue(loss_nll);
@@ -323,7 +346,7 @@ classdef GP
 
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
-            obj = obj.condition(obj.X,obj.Y,obj.lb_x,obj.ub_x);
+            obj = obj.condition(obj.X,obj.Y,obj.E,obj.lb_x,obj.ub_x);
 
         end
 
@@ -368,19 +391,22 @@ classdef GP
 
         end
 
-        function obj = resolve(obj,x,y)
+        function obj = resolve(obj,x,y,e)
            
             replicates = ismembertol(x,obj.X,1e-4,'ByRows',true);
 
             x(replicates,:) = [];
             y(replicates,:) = [];
+            e(replicates,:) = [];
+
 
             if size(x,1)>0
 
                 obj.X = [obj.X; x];
                 obj.Y = [obj.Y; y];
+                obj.E = [obj.E; e];
            
-                obj = obj.condition(obj.X,obj.Y);
+                obj = obj.condition(obj.X,obj.Y,obj.E,obj.lb_x,obj.ub_x);
             end
 
         end

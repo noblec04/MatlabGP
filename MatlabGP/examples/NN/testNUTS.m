@@ -14,7 +14,7 @@ V1 = 0.9;
 NUTS1 = utils.NUTS(0.001,4);
 
 tic
-for i = 1:10000
+for i = 1:1000
 
     [V1, alpha_ave, logp, grad] = NUTS1.step(@forr,V1);
 

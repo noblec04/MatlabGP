@@ -32,7 +32,7 @@ kaNN.lb_x = 0;
 kaNN.ub_x = 1;
 
 ka = kernels.EQ_NN(kaNN,1,[1 1]);%.periodic(1,10);
-ka.signn = 1e-3;
+ka.signn = 1e-9;
 
 %%
 
@@ -44,7 +44,40 @@ figure
 plot(xm,ky)
 
 %%
-Z = Z.train2();
+%Z = Z.train2();
+
+%%
+
+V = Z.getHPs();
+opt = optim.AdamLS(V);
+FF = @(x) Z.loss(x); 
+
+for i = 1:200
+    
+    Vi(:,i) = V;
+
+    [e(i),dV] = Z.loss(V);
+
+    [opt,V] = opt.step(V,FF,dV);
+    
+    lr(i) = opt.lr;
+
+    figure(1)
+    clf(1)
+    subplot(1,2,1)
+    plot(e)
+    set(gca,'yscale','log')
+    set(gca,'xscale','log')
+
+    subplot(1,2,2)
+    plot(lr)
+    set(gca,'yscale','log')
+    set(gca,'xscale','log')
+end
+
+Z = Z.setHPs(V);
+Z = Z.condition(x1,y1,0,1);
+
 
 %%
 figure

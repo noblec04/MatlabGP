@@ -32,8 +32,6 @@ max(abs(yy - Z.eval_mu(xx)))./std(yy)
 
 %%
 
-opts = optimoptions('fmincon','Display','off');
-
 tic
 for i = 1:50
     Z = Z.addInducingPoints(Z.newXuDiff());

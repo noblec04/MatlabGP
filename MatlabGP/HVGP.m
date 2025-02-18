@@ -1,5 +1,5 @@
 %{
-    Variational Gaussian Process
+    Heteroscedastic Variational Gaussian Process
     
     An approximate Gaussian process model that uses inducing points to
     create a low rank approximate conditional predictive distribution.
@@ -17,11 +17,12 @@
 
 %}
 
-classdef VGP
+classdef HVGP
     
     properties
         kernel
         mean
+        kre
 
         B
         
@@ -38,6 +39,7 @@ classdef VGP
         X
         Xu
         Y
+        E
 
         lb_x
         ub_x
@@ -45,19 +47,22 @@ classdef VGP
 
     methods
 
-        function obj = VGP(mean,kernel,ind)
+        function obj = HVGP(mean,kernel,ind)
             if isempty(mean)
                 mean = means.zero;
             end
             obj.mean = mean;
             obj.kernel = kernel;
             obj.Xu = ind;
+
+            obj.kre = VGP(mean,kernel,ind);
+
         end
 
         function [y,sig] = eval(obj,x)
             
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = obj.Xu;%(obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             ksu = obj.kernel.build(xs,xu);
 
@@ -69,8 +74,12 @@ classdef VGP
                 v2 = obj.M\ksu';
 
                 sigs = dot(ksu',v2)-dot(ksu',v1);
+
+                [mua,siga] = obj.kre.eval(x);
+
+                sigsa = exp(mua + siga/2);
             
-                sig = obj.kernel.scale + obj.kernel.signn + sigs';
+                sig = obj.kernel.scale + obj.kernel.signn + sigs' + sigsa;
             end
 
         end
@@ -78,7 +87,7 @@ classdef VGP
         function [y] = eval_mu(obj,x)
             
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = obj.Xu;%(obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             ksu = obj.kernel.build(xs,xu);
 
@@ -101,7 +110,7 @@ classdef VGP
         function [sig] = eval_var(obj,x)
             
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = obj.Xu;%(obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             ksu = obj.kernel.build(xs,xu);
 
@@ -110,7 +119,11 @@ classdef VGP
 
             sigs = dot(ksu',v2)-dot(ksu',v1);
 
-            sig = obj.kernel.scale + obj.kernel.signn + sigs';
+            [mua,siga] = obj.kre.eval(x);
+
+            sigsa = exp(mua + siga/2);
+
+            sig = obj.kernel.scale + obj.kernel.signn + sigs' + sigsa;
 
         end
 
@@ -125,14 +138,18 @@ classdef VGP
         function y = samplePosterior(obj,x)
             
             xs = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = obj.Xu;%(obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             ksu = obj.kernel.build(xs,xu);
             kss = obj.kernel.build(xs,xs);
 
-            sigs = -ksu*obj.Kuuinv*ksu' + ksu*obj.Minv*ksu';
+            sigs = -ksu*obj.Kuu\ksu' + ksu*obj.M\ksu';
             
-            sig = kss + obj.kernel.signn + sigs;
+            [mua,siga] = obj.kre.eval(x);
+
+            sigsa = exp(mua + siga/2);
+
+            sig = kss + obj.kernel.signn + sigs + sigsa;
 
             y = mvnrnd(obj.mean.eval(x)+ksu*obj.alpha,sig);
             
@@ -146,7 +163,8 @@ classdef VGP
             
             if size(x,1)>0
                 obj.Xu = [obj.Xu;x];
-                obj = obj.condition(obj.X,obj.Y);
+                obj = obj.condition(obj.X,obj.Y,obj.E);
+                obj.kre = obj.kre.addInducingPoints(x);
             end
 
         end
@@ -159,20 +177,21 @@ classdef VGP
 
         end
 
-        function [x] = newXuDiff(obj)%,x)
-
-            %obj2 = obj.addInducingPoints(x);
+        function [x,dy] = newXuDiff(obj)
 
             replicates = ismembertol((obj.X - obj.lb_x)./(obj.ub_x - obj.lb_x),obj.Xu,1e-4,'ByRows',true);
 
             obj.X(replicates,:)=[];
             obj.Y(replicates)=[];
+            obj.E(replicates)=[];
 
             Y1 = obj.eval(obj.X);
 
-            dy = abs(obj.Y-Y1);
+            dy = abs((obj.Y-Y1)./sqrt(obj.E));
 
             [~,imax] = max(dy);
+
+            dy = dy(imax);
 
             x = (obj.X(imax,:) - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
@@ -190,12 +209,13 @@ classdef VGP
 
         end
 
-        function obj = condition(obj,X,Y,lb,ub)
+        function obj = condition(obj,X,Y,E,lb,ub)
 
             obj.X = X;
             obj.Y = Y;
+            obj.E = E;
 
-            if nargin<4
+            if nargin<5
                 obj.lb_x = min(X);
                 obj.ub_x = max(X);
             else
@@ -204,19 +224,20 @@ classdef VGP
             end
 
             xf = (X - obj.lb_x)./(obj.ub_x - obj.lb_x);
-            xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
+            xu = obj.Xu;%(obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
             obj.kernel.scale = std(Y)/2;
 
             obj.Kuu = obj.kernel.build(xu,xu) + (1e-6)*eye(size(xu,1));
-            %obj.Kuuinv = pinv(obj.Kuu,1*10^(-7));
 
             obj.Kuf = obj.kernel.build(xu,xf);
 
-            obj.B = obj.Kuf*obj.Kuf'/obj.kernel.signn;
+            obj.B = obj.Kuf*(diag(1./(obj.E + obj.kernel.signn)))*obj.Kuf';
             obj.M = obj.Kuu + obj.B;
 
-            obj.alpha = obj.M\(obj.Kuf*(Y - obj.mean.eval(X))/obj.kernel.signn);
+            obj.alpha = obj.M\(obj.Kuf*((Y - obj.mean.eval(X))./(obj.E + obj.kernel.signn)));
+
+            obj.kre = obj.kre.condition(X,log(E+eps),obj.lb_x,obj.ub_x);
 
         end
 
@@ -234,7 +255,7 @@ classdef VGP
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:ntm+ntk));
 
-            obj = obj.condition(obj.X,obj.Y);
+            obj = obj.condition(obj.X,obj.Y,obj.E);
 
             its = randsample(size(obj.X,1),max(5,ceil(size(obj.X,1)/50)));
 
@@ -254,7 +275,9 @@ classdef VGP
             tk0 = obj.kernel.getHPs();
             ntk = numel(tk0);
 
-            theta = AutoDiff(theta);
+            if nargout==2
+                theta = AutoDiff(theta);
+            end
 
             if regress
                 obj.kernel.signn = theta(ntm+ntk+1);
@@ -271,13 +294,19 @@ classdef VGP
             
             nll = -1*nll;
 
-            loss = getvalue(nll);
-            dloss = getderivs(nll);
-            dloss = reshape(full(dloss),[1 nV]);
+            if nargout==2
+                loss = getvalue(nll);
+                dloss = getderivs(nll);
+                dloss = reshape(full(dloss),[1 nV]);
+            else
+                loss = nll;
+            end
 
         end
 
         function [obj,nll] = train(obj,regress)
+
+            obj.kre = obj.kre.train();
 
             if obj.kernel.signn==0||nargin<2
                 regress=1;
@@ -324,11 +353,13 @@ classdef VGP
 
             obj.mean = obj.mean.setHPs(theta(1:ntm));
             obj.kernel = obj.kernel.setHPs(theta(ntm+1:end));
-            obj = obj.condition(obj.X,obj.Y);
+            obj = obj.condition(obj.X,obj.Y,obj.E);
 
         end
 
         function [obj,nll] = train2(obj,regress)
+
+            obj.kre = obj.kre.train2();
 
             if obj.kernel.signn==0||nargin<2
                 regress=1;
@@ -380,27 +411,30 @@ classdef VGP
 
         end
 
-        function obj = resolve(obj,x,y)
+        function obj = resolve(obj,x,y,e)
             
             replicates = ismembertol(x,obj.X,1e-4,'ByRows',true);
 
             x(replicates,:)=[];
             y(replicates)=[];
+            e(replicates)=[];
             
             if size(x,1)>0
 
                 obj.X = [obj.X; x];
                 obj.Y = [obj.Y; y];
+                obj.E = [obj.E; e];
+
 
                 xsc = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
                 xu = (obj.Xu - obj.lb_x)./(obj.ub_x - obj.lb_x);
 
                 [k2s] = obj.kernel.build(xu,xsc);
                 
-                obj.B = obj.B + k2s*k2s'/obj.kernel.signn;
+                obj.B = obj.B + k2s*diag(1./(e + obj.kernel.signn))*k2s';
                 obj.M = obj.Kuu + obj.B;
 
-                obj.alpha = obj.alpha + k2s*y/obj.kernel.signn;
+                obj.alpha = obj.alpha + k2s*y./(e + obj.kernel.signn);
             end
             
         end

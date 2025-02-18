@@ -11,7 +11,7 @@ input.addOptional('lb',kr.lb_x,@isnumeric);     % Lower bound of plot
 input.addOptional('ub',kr.ub_x,@isnumeric);     % Upper bound of plot
 input.addOptional('cmap','thermal');
 input.addOptional('LS','-');
-input.addOptional('nL',50);
+input.addOptional('nL',20);
 input.addOptional('CI',true);
 input.addOptional('color','b');
 input.parse(varargin{:})
