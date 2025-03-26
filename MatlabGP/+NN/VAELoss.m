@@ -21,7 +21,7 @@ classdef VAELoss
 
             DKL = 0.5*(sig + mu.^2 - 1 - log(sig));
 
-            e = sum((y - yp).^2) + sum(obj.beta*DKL);
+            e = sum((y - yp).^2) + sum(sum(obj.beta*DKL));
 
         end
     end

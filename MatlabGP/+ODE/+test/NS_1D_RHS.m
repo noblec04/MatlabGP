@@ -43,7 +43,13 @@ dS3 = utils.Grad((4/3)*mu*U.*dU + K*dT,dx);
 
 ydot = [-dF1 dS2-dF2 dS3-dF3];
 
-ydot(1,:) = 0;
-ydot(end,:) = 0;
+% ydot(1,:) = 0;
+% ydot(end,:) = 0;
+
+ydot(1,2) = 0;
+ydot(end,2) = 0;
+
+ydot(1,[1 3]) = ydot(2,[1 3]);
+ydot(end,[1 3]) = ydot(end-1,[1 3]);
 
 end

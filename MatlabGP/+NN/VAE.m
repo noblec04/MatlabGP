@@ -59,7 +59,9 @@ classdef VAE
 
             nV = length(V(:));
 
-            V = AutoDiff(V(:));
+            if nargout == 2
+                V = AutoDiff(V(:));
+            end
 
             obj = obj.setHPs(V(:));
 
@@ -69,9 +71,13 @@ classdef VAE
 
             e1 = sum(eout,2);
 
-            e = getvalue(e1);
-            de = getderivs(e1);
-            de = reshape(full(de),[1 nV]);
+            if nargout==2
+                e = getvalue(e1);
+                de = getderivs(e1);
+                de = reshape(full(de),[1 nV]);
+            else
+                e = e1;
+            end
 
         end
 

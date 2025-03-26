@@ -31,7 +31,7 @@ classdef LBFGS
             input.addOptional('lb',[]);
             input.addOptional('ub',[]);
             input.addOptional('m',5);
-            input.addOptional('lr',0.1);
+            input.addOptional('lr',0.02);
             input.parse(varargin{:})
             in=input.Results;
 

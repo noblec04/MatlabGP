@@ -22,7 +22,7 @@ classdef MHMCMC
             N=0;
 
             for i = 1:size(x,2)
-                pd = makedist('Normal','mu',x(i),'sigma',0.3);
+                pd = makedist('Normal','mu',x(i),'sigma',0.01);
                 propd{i} = truncate(pd,obj.lb(i),obj.ub(i));
             end
 

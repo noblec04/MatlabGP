@@ -52,6 +52,23 @@ classdef NN
             sig = obj.eval_var(x);
         end
 
+        function [mu,sig] = MCeval(obj,x,V)
+
+            [nMC,~] = size(V);
+
+            for i = 1:nMC
+
+                obj2 = obj.setHPs(V(:,i));
+
+                y(i,:,:) = obj2.eval_mu(x);
+
+            end
+
+            mu = squeeze(mean(y,1));
+            sig = squeeze(std(y,[],1));
+
+        end
+
         function [y] = predict(obj,x)
 
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);

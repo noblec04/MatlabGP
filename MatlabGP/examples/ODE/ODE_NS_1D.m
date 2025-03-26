@@ -2,15 +2,15 @@ clear
 clc
 
 gamma = 1.4;
-mu = 5e-1;
-K = 5e-1;
+mu = 2e-1;
+K = 5e-2;
 
 tf = 150;
 
 xs0 = 2; %Shock location
 xi0 = 7; %Interface location
 
-ls0 = 0.0001; %Shock width
+ls0 = 0.001; %Shock width
 li0 = 0.1; %interface width
 x = linspace(0,9,200)';
 
@@ -25,7 +25,7 @@ rho = 0.125 + (1.3 - 0.125)*ss;
 rho = rho.*ss2;
 
 U = 0*rho;
-P = 0.1 + (1.3 - 0.1)*ss;
+P = 0.05 + (1.5 - 0.05)*ss;
 
 E = P./(gamma-1) + 0.5*rho.*U.^2;
 

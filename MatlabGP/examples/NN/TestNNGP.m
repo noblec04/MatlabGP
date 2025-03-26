@@ -1,4 +1,9 @@
 
+clear
+close all
+clc
+
+%%
 A = 0.5; B = 10; C = -5;
 ff = @(x) (6*x-2).^2.*sin(12*x-4);
 
@@ -19,14 +24,17 @@ lss = NN.MAE();
 ma = NN.NN(layers,acts,lss);
 
 %%
+tic
+
 ma = ma.train(x1,y1,0,1);
 
+toc
 %%
 ma.lb_x = 0;
 ma.ub_x = 1;
 
-a = kernels.EQ(1,0.1);%.periodic(1,10);
-a.signn = 0.01;
+a = kernels.EQ(1,1);%.periodic(1,10);
+a.signn = 0.001;
 
 %%
 
@@ -34,4 +42,25 @@ Z = GP(ma,a);
 Z = Z.condition(x1,y1,0,1);
 
 %%
-Z = Z.train();
+
+tic
+
+V = Z.getHPs();
+
+opt = optim.AdamLS(V,'wd',0.00001);
+FF = @(x) Z.loss(x); 
+
+for i = 1:200
+    
+    Vi(:,i) = V;
+
+    [e(i),dV] = Z.loss(V);
+
+    [opt,V] = opt.step(V,FF,dV);
+
+end
+
+Z = Z.setHPs(V);
+Z = Z.condition(x1,y1,0,1);
+
+toc

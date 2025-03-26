@@ -37,13 +37,16 @@ classdef HGP
 
     methods
 
-        function obj = HGP(mean,kernel)
+        function obj = HGP(mean,kernel_m,kernel_e)
             if isempty(mean)
                 mean = means.zero;
             end
             obj.mean = mean;
-            obj.kernel = kernel;
-            obj.kre = GP(mean,kernel);
+            obj.kernel = kernel_m;
+            if nargin<3
+                kernel_e = kernel_m;
+            end
+            obj.kre = GP(mean,kernel_e);
         end
 
         function [y,sig] = eval(obj,x)
