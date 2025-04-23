@@ -23,6 +23,16 @@ classdef NN
             obj.lossfunc = loss;
         end
 
+        function y = set_eval(obj,V,x)
+
+            V = AutoDiff(V(:));
+
+            obj = obj.setHPs(V(:));
+
+            [y] = obj.forward(x);
+
+        end
+
         function [y,obj] = forward(obj,x)
 
             nl = numel(obj.layers);

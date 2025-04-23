@@ -3,7 +3,9 @@ clear
 close all
 clc
 
-xx = lhsdesign(5,1);
+xx = lhsdesign(10,1);
+
+xx = [xx;flipud(xx);flipud(xx);xx;flipud(xx)];
 yy = normrnd(forr(xx,0),0*forr(xx,0)+1);
 
 yy = (yy-min(yy(:)))/(max(yy(:))-min(yy(:)));
@@ -29,7 +31,7 @@ acts2{2} = NN.SWISH(0.8);
 
 dec = NN.NN(layers2,acts2,[]);
 
-lss = NN.VAELoss(1e-6);
+lss = NN.VAELoss(0);
 
 AE1 = NN.VAE(enc,dec,lss);
 
@@ -51,6 +53,9 @@ yp2 = AE2.forward(yy);
 
 zz = AE2.Encoder.forward(yy);
 
+zz(:,[3 4]) = 0;
+
+yp3 = AE2.Decoder.forward(zz);
 
 %%
 % figure

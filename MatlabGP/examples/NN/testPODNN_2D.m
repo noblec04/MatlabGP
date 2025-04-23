@@ -10,7 +10,7 @@ nmodes = 3;
 
 %xx = utils.ndgrid(linspace(lb(1),ub(1),5),linspace(lb(2),ub(2),5));
 
-xx = lb + (ub - lb).*[lhsdesign(8,2);utils.HypercubeVerts(2)];
+xx = lb + (ub - lb).*[lhsdesign(18,2);utils.HypercubeVerts(2)];
 
 xx = [xx;flipud(xx);xx;xx;xx;flipud(xx)];
 

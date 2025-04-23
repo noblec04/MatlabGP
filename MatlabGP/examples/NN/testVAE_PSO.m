@@ -45,28 +45,18 @@ tic
 
 V = AE1.getHPs();
 
-opt = optim.AdamLS(V(:));
+opt = optim.PSO(100,V(:));
 FF = @(x) AE1.loss(x,yy,yy); 
 
 for i = 1:800
-    
+
     Vi(:,i) = V;
 
-    [e(i),dV] = AE1.loss(V(:),yy,yy);
-
-    [opt,V] = opt.step(V(:),FF,dV(:));
-    
-    lr(i) = opt.lr;
+    [opt,V,e(i)] = opt.step(FF);
 
     figure(1)
     clf(1)
-    subplot(1,2,1)
     plot(e)
-    set(gca,'yscale','log')
-    set(gca,'xscale','log')
-
-    subplot(1,2,2)
-    plot(lr)
     set(gca,'yscale','log')
     set(gca,'xscale','log')
 

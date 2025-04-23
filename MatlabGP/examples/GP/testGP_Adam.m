@@ -13,7 +13,7 @@ ymesh = forr(xmesh,0);
 
 a = means.const(1)+means.linear(1);
 
-b = kernels.EQ(0.5,5)+kernels.Matern52(0.5,5);
+b = kernels.Matern52(0.5,5)+kernels.RQ(2,0.5,5);
 b.signn = eps;
 
 %%
@@ -26,14 +26,15 @@ Z1 = Z.condition(xx,yy);
 tic
 V = Z1.getHPs();
 
-opt = optim.Adam(V,'lr',0.2);
+opt = optim.AdamLS(V);
+FF = @(x) Z1.loss(x); 
 
 for i = 1:30
     
     Vi(:,i) = V;
 
     [e(i),dV] = Z1.loss(V);
-    [opt,V] = opt.step(V,dV);
+    [opt,V] = opt.step(V,FF,dV);
 
 end
 
