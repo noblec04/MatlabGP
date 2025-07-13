@@ -40,7 +40,7 @@ for i = 1:n
         XX(dim1) = xx1(i);
         XX(dim2) = xx2(j);
         
-        Yj = kr.eval([XX;XX]);
+        Yj = kr.eval(XX);
         YY(i,j,:) = Yj(1,:);
         
         if in.CI

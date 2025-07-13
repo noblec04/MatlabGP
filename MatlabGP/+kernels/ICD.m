@@ -18,7 +18,7 @@ function [G,subset] = ICD(X,kernel,m,precision)
 % Francis R. Bach, Michael I. Jordan. "Kernel Independent Component
 % Analysis", Journal of Machine Learning Research, 3, 1-48, 2002.
 %
-% This file is part of the Kernel Methods Toolbox for MATLAB.
+% This file is adapted from the Kernel Methods Toolbox for MATLAB.
 % https://github.com/steven2358/kmbox
 
 n = size(X,1);

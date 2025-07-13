@@ -3,7 +3,7 @@ clear
 close all
 clc
 
-D = 4;
+D = 2;
 nF = 3;
 
 lb = -2*ones(1,D);
@@ -15,7 +15,7 @@ yy = testFuncs.Rosenbrock(xx,1);
 x1 = lb + (ub - lb).*lhsdesign(5,D);
 y1 = testFuncs.Rosenbrock(x1,1);
 
-x2 = [lb + (ub - lb).*lhsdesign(8,D)];%20
+x2 = [lb + (ub - lb).*lhsdesign(20,D)];%20
 y2 = testFuncs.Rosenbrock(x2,2);
 
 x3 = [lb + (ub - lb).*lhsdesign(100,D)];%100
@@ -81,7 +81,7 @@ max(abs(yy - MF.eval_mu(xx)))./std(yy)
 
 %%
 
-C = [50 30 1];%20
+C = [50 5 1];%20
 
 for jj = 1:200
    
@@ -99,21 +99,21 @@ for jj = 1:200
     [~,in] = max(sqrt(siggn.*nu));
 
     if in==1
-        [x{1},flag] = utils.catunique(x{1},xn,1e-2);
+        [x{1},flag] = utils.catunique(x{1},xn,1e-3);
         if flag
             y{1} = [y{1}; testFuncs.Rosenbrock(xn,1)];
         end
     end
 
     if in==2 || in==1
-        [x{2},flag] = utils.catunique(x{2},xn,1e-2);
+        [x{2},flag] = utils.catunique(x{2},xn,1e-3);
         if flag
             y{2} = [y{2}; testFuncs.Rosenbrock(xn,2)];
         end
     end
 
     if in==3 || in==1
-        [x{3},flag] = utils.catunique(x{3},xn,1e-2);
+        [x{3},flag] = utils.catunique(x{3},xn,1e-3);
         if flag
             y{3} = [y{3}; testFuncs.Rosenbrock(xn,3)];
         end
@@ -121,6 +121,7 @@ for jj = 1:200
 
     for ii = 1:nF
         Z{ii} = Z{ii}.condition(x{ii},y{ii},lb,ub);
+        
     end
 
     yh1 = MF.eval(xn);
@@ -162,33 +163,33 @@ for jj = 1:200
     % box on
     % grid on
 
-    % figure(3)
-    % clf(3)
-    % hold on
-    % plot(cost,R2z)
-    % plot(cost,R2MF)
-    % 
-    % figure(4)
-    % clf(4)
-    % hold on
-    % plot(cost,RMAEz)
-    % plot(cost,RMAEMF)
-    % plot(cost,maxeMF)
-    % 
-    % figure(5)
-    % clf(5)
-    % hold on
-    % plot(cost,Rie)
-    % plot(cost,Ri)
-    % 
-    % figure(6)
-    % clf(6)
-    % hold on
-    % dec.plotDists
+    figure(3)
+    clf(3)
+    hold on
+    plot(cost,R2z)
+    plot(cost,R2MF)
+
+    figure(4)
+    clf(4)
+    hold on
+    plot(cost,RMAEz)
+    plot(cost,RMAEMF)
+    plot(cost,maxeMF)
+
+    figure(5)
+    clf(5)
+    hold on
+    plot(cost,Rie)
+    plot(cost,Ri)
+
+    figure(6)
+    clf(6)
+    hold on
+    dec.plotDists
     % 
     % drawnow
 
-    if RMAEMF(jj)<0.1
+    if maxeMF(jj)<0.1
         break
     end
 end

@@ -18,8 +18,8 @@ nnet = NN.NN(layers,acts,lss);
 
 %%
 
-nt = 10;
-nx = 200;
+nt = 5;
+nx = 100;
 
 yy = normrnd(6,0.1,nx,1);
 tt = linspace(0,1,nt);
