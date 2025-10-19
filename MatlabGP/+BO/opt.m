@@ -17,12 +17,18 @@ Z = Z.train();
 %fx = figure();
 
 for i = 1:40
-    i
+
     [x] = BO.argmin(FF,Z);
 
     y = f(x);
 
-    x0 = [x0;x];
+    [x0,flag] = utils.catunique(x0,x,1E-7);
+
+    if ~flag
+        i = i - 1;
+        break
+    end
+
     y0 = [y0;y];
 
     Z = Z.condition(x0,y0,lb,ub);
