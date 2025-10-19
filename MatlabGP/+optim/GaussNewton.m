@@ -1,0 +1,64 @@
+classdef GaussNewton
+
+    properties
+
+        iter = 0;
+
+        lb = [];
+        ub = [];
+
+        wd
+        
+    end
+
+    methods
+
+        function obj = GaussNewton(varargin)
+
+            input=inputParser;
+            input.KeepUnmatched=true;
+            input.PartialMatching=false;
+            input.addOptional('lb',[]);
+            input.addOptional('ub',[]);
+            input.parse(varargin{:})
+            in=input.Results;
+
+            obj.lb = in.lb;
+            obj.ub = in.ub;            
+            
+        end
+
+        function [obj,x] = step(obj,x,F,dF)
+
+            obj.iter = obj.iter + 1;
+
+            A = dF'*dF + diag(0*x + 1E-2);
+            b = -1*dF'*F';
+
+            delta_x = 0.01*full(A\b)';
+
+            %update parameters
+            x = x + delta_x;
+
+            %reflective upper bound
+            if ~isempty(obj.ub)
+                for jj = 1:length(x)
+                    if x(jj)>obj.ub(jj)
+                        x(jj)=obj.ub(jj);
+                    end
+                end
+            end
+
+            %reflective lower bound
+            if ~isempty(obj.lb)
+                for jj = 1:length(x)
+                    if x(jj)<obj.lb(jj)
+                        x(jj)=obj.lb(jj);
+                    end
+                end
+            end
+
+        end
+
+    end
+end
