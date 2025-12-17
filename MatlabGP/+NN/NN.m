@@ -231,8 +231,8 @@ classdef NN
                 obj.ub_x = ub;
             end
 
-            obj.lb_y = min(y,[],2);
-            obj.ub_y = max(y,[],2);
+            obj.lb_y = min(y,[],1);
+            obj.ub_y = max(y,[],1);
 
             x = (x - obj.lb_x)./(obj.ub_x - obj.lb_x);
             y = (y - obj.lb_y)./(obj.ub_y - obj.lb_y);

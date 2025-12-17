@@ -16,7 +16,7 @@ layers{3} = NN.FF(3,3);
 acts{1} = NN.SWISH(1.2);
 acts{2} = NN.SWISH(0.8);
 
-lss = NN.MSE();
+lss = NN.MAE();
 
 nnet = NN.NN(layers,acts,lss);
 
@@ -26,7 +26,7 @@ tic
 
 V = nnet.getHPs();
 
-opt = optim.diffGrad(V,'lr',0.1);
+opt = optim.diffGrad(V,'lr',0.5);
 
 for i = 1:500
     
@@ -45,6 +45,9 @@ end
 
 nnet = nnet.setHPs(V);
 
+nnet.lb_x = 0;
+nnet.ub_x = 1;
+
 toc
 
 %%
@@ -53,6 +56,8 @@ tic
 nnet2 = nnet.train(xx,yy,0,1);
 toc
 
+nnet2.lb_x = 0;
+nnet2.ub_x = 1;
 
 yp2 = nnet.predict(xmesh);
 
